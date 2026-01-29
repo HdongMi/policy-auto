@@ -10,25 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 18
 
       - name: Install dependencies
-        run: npm install
-        working-directory: ./
+        run: |
+          cd $GITHUB_WORKSPACE
+          ls -la
+          npm install
 
       - name: Run crawler
-        run: node crawler.js
-        working-directory: ./
+        run: |
+          cd $GITHUB_WORKSPACE
+          node crawler.js
 
-
-
-      - run: |
+      - name: Commit result
+        run: |
+          cd $GITHUB_WORKSPACE
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add policies.json
-          git commit -m "자동 업데이트" || echo "no change"
+          git commit -m "자동 정책 업데이트" || echo "no changes"
           git push
