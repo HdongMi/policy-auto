@@ -1,105 +1,55 @@
 import fs from "fs";
 import path from "path";
-import { chromium } from "playwright";
+import fetch from "node-fetch";
 
 async function run() {
-  const browser = await chromium.launch({ 
-    headless: true, 
-    args: ['--no-sandbox', '--disable-setuid-sandbox'] 
-  });
+  // 1. 발급받은 인증키 (Encoding 키 사용)
+  const SERVICE_KEY = "e8e40ea23b405a5abba75382a331e61f9052570e9e95a7ca6cf5db14818ba22b";
   
-  // 사람처럼 보이게 하기 위한 브라우저 설정
-  const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    viewport: { width: 1280, height: 800 }
-  });
-  
-  const page = await context.newPage();
+  // 2. 비즈인포(기업마당) API URL
+  const URL = `http://apis.data.go.kr/1381000/hopeSmesPblancService/getHopeSmesPblancList?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=20&type=json`;
+
   const filePath = path.join(process.cwd(), "policies.json");
-  let allNewPolicies = [];
 
   try {
-    // --- 1. 기업마당 ---
-    console.log("🔍 기업마당 접속 중...");
-    try {
-      await page.goto("https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/list.do", { 
-        waitUntil: "networkidle", // 네트워크가 조용해질 때까지 대기
-        timeout: 60000 
-      });
-      // 데이터가 뜰 때까지 최대 30초 대기
-      await page.waitForSelector(".table_list", { timeout: 30000 });
-      
-      const bizData = await page.evaluate(() => {
-        const rows = Array.from(document.querySelectorAll(".table_list tbody tr"));
-        return rows.map(row => {
-          const a = row.querySelector("td.tit a");
-          if (!a || a.innerText.includes("데이터가 없습니다")) return null;
-          return {
-            title: a.innerText.trim(),
-            region: "전국",
-            deadline: row.querySelectorAll("td")[3]?.innerText.trim() || "상세참조",
-            source: "기업마당",
-            link: "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/list.do"
-          };
-        }).filter(i => i !== null);
-      });
-      console.log(`✅ 기업마당에서 ${bizData.length}건 발견`);
-      allNewPolicies.push(...bizData);
-    } catch (e) {
-      console.log("⚠️ 기업마당 수집 중 타임아웃 발생 (건너뜁니다)");
+    console.log("📡 비즈인포 API 접속 중...");
+    const response = await fetch(URL);
+    const data = await response.json();
+
+    // API 응답 데이터 구조 파싱
+    const items = data.response?.body?.items?.item || [];
+    
+    if (items.length === 0) {
+      console.log("⚠️ API 응답에 데이터가 없습니다. (키 활성화까지 1~2시간 소요될 수 있음)");
+      return;
     }
 
-    // --- 2. 소진공 ---
-    console.log("🔍 소진공 접속 중...");
-    try {
-      await page.goto("https://www.semas.or.kr/web/lay1/program/S1T122C128/business/list.do", { 
-        waitUntil: "networkidle",
-        timeout: 60000 
-      });
-      await page.waitForSelector(".table_list", { timeout: 30000 });
-      
-      const semasData = await page.evaluate(() => {
-        const rows = Array.from(document.querySelectorAll(".table_list tbody tr"));
-        return rows.map(row => {
-          const a = row.querySelector("td.tit a");
-          if (!a) return null;
-          return {
-            title: a.innerText.trim(),
-            region: "전국",
-            deadline: row.querySelectorAll("td")[4]?.innerText.trim() || "상세참조",
-            source: "소진공",
-            link: "https://www.semas.or.kr/web/lay1/program/S1T122C128/business/list.do"
-          };
-        }).filter(i => i !== null);
-      });
-      console.log(`✅ 소진공에서 ${semasData.length}건 발견`);
-      allNewPolicies.push(...semasData);
-    } catch (e) {
-      console.log("⚠️ 소진공 수집 중 타임아웃 발생 (건너뜁니다)");
+    const newPolicies = items.map(item => ({
+      title: item.pblancNm,               // 공고명
+      region: item.areaNm || "전국",        // 지역
+      deadline: item.reqstEndDt || "상세참조", // 마감일
+      source: "기업마당(API)",
+      link: item.pblancUrl                // 상세페이지 주소
+    }));
+
+    // 3. 기존 데이터 로드 및 합치기 (누적 저장)
+    let existingData = [];
+    if (fs.existsSync(filePath)) {
+      existingData = JSON.parse(fs.readFileSync(filePath, "utf8"));
     }
 
-    // --- 3. 데이터 통합 ---
-    if (allNewPolicies.length > 0) {
-      let existingData = [];
-      if (fs.existsSync(filePath)) {
-        existingData = JSON.parse(fs.readFileSync(filePath, "utf8"));
-      }
+    const combined = [...newPolicies, ...existingData];
+    // 제목 기준으로 중복 제거
+    const unique = combined.filter((v, i, a) => 
+      v.title && a.findIndex(t => t.title === v.title) === i
+    );
 
-      const combined = [...allNewPolicies, ...existingData];
-      const unique = combined.filter((v, i, a) => 
-        v.title && a.findIndex(t => t.title === v.title) === i
-      );
-
-      fs.writeFileSync(filePath, JSON.stringify(unique, null, 2));
-      console.log(`✨ 최종 결과: 총 ${unique.length}건 저장 완료!`);
-    } else {
-      console.log("❌ 새로 수집된 데이터가 없어 저장하지 않습니다.");
-    }
+    fs.writeFileSync(filePath, JSON.stringify(unique, null, 2));
+    console.log(`✅ API 연동 성공! 현재 총 ${unique.length}건의 공고가 저장되어 있습니다.`);
 
   } catch (error) {
-    console.error("❌ 치명적 에러:", error.message);
-  } finally {
-    await browser.close();
+    console.error("❌ API 요청 중 에러 발생:", error.message);
+    console.log("💡 만약 'invalid key' 에러가 난다면, API 승인 후 1~2시간 뒤에 다시 시도해 보세요.");
   }
 }
 
