@@ -1,4 +1,18 @@
-steps:
+name: crawl
+
+on:
+  schedule:
+    - cron: "0 3 * * *"   # 매일 오전 12시 (한국시간)
+  workflow_dispatch:      # 수동 실행 버튼 활성화
+
+permissions:
+  contents: write
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -9,11 +23,10 @@ steps:
 
       - name: Install deps
         run: |
-          npm init -y
-          npm install playwright node-fetch cheerio  # 👈 여기에 playwright 추가
+          npm install playwright node-fetch cheerio
 
       - name: Install Playwright Browsers
-        run: npx playwright install chromium --with-deps  # 👈 브라우저를 설치하는 '새로운 단계'
+        run: npx playwright install chromium --with-deps
 
       - name: Run crawlers
         run: |
