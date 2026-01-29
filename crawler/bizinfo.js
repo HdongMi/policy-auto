@@ -8,35 +8,35 @@ async function crawlBizInfo() {
   try {
     const res = await fetch(URL, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7"
       }
     });
+    
     const html = await res.text();
     const $ = cheerio.load(html);
-
     const policies = [];
 
-    // tr 요소가 있는지 먼저 확인
-    const rows = $(".table_list tbody tr");
-    console.log("찾은 행 개수:", rows.length);
-
-    rows.each((_, el) => {
+    // 특정 클래스(.table_list)가 없어도 찾을 수 있게 tr 전체 탐색
+    $("tr").each((_, el) => {
       const $el = $(el);
       
-      // 제목 셀렉터를 더 유연하게 변경
-      const titleElement = $el.find("td.tit a");
-      const title = titleElement.text().replace(/\s+/g, ' ').trim();
+      // 제목이 들어있는 링크 찾기 (기업마당은 보통 클래스 'tit' 혹은 'txt_left' 사용)
+      const titleAnchor = $el.find("a[href*='list.do'], a[href*='view.do']").first();
+      let title = titleAnchor.text().replace(/\s+/g, ' ').trim();
       
-      if (!title) return;
+      // 제목이 비어있다면 다음 행으로
+      if (!title || title.length < 2) return;
 
-      // 링크 추출
-      let rawLink = titleElement.attr("href") || "";
+      // 링크 추출 및 절대경로화
+      let rawLink = titleAnchor.attr("href") || "";
       const link = rawLink.startsWith("http") 
         ? rawLink 
         : `https://www.bizinfo.go.kr${rawLink}`;
 
-      // 날짜 (4번째 td)
-      const deadline = $el.find("td").eq(3).text().trim();
+      // 날짜 추출 (보통 4번째 혹은 5번째 td)
+      const deadline = $el.find("td").last().text().trim();
 
       policies.push({
         title,
@@ -49,6 +49,12 @@ async function crawlBizInfo() {
         link
       });
     });
+
+    // 만약 여전히 0개라면? (예비용: 다른 셀렉터 시도)
+    if (policies.length === 0) {
+        console.log("⚠️ 기본 셀렉터 실패, 대체 셀렉터 시도 중...");
+        // 필요시 여기에 다른 구조의 셀렉터 추가
+    }
 
     fs.writeFileSync("bizinfo.json", JSON.stringify(policies, null, 2));
     console.log("✅ 기업마당 공고 업데이트 완료:", policies.length, "건");
