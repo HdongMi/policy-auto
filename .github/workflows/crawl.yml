@@ -5,6 +5,8 @@ on:
     - cron: "0 3 * * *"   # 매일 오전 12시 (한국시간)
   workflow_dispatch:
 
+permissions:
+  contents: write  # 레포지토리에 쓸 수 있는 권한을 부여합니다.
 jobs:
   crawl:
     runs-on: ubuntu-latest
