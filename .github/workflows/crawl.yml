@@ -23,21 +23,19 @@ jobs:
 
       - name: Install deps
         run: |
-          npm install playwright node-fetch cheerio
+          npm install playwright
 
       - name: Install Playwright Browsers
         run: npx playwright install chromium --with-deps
 
-      - name: Run crawlers
+      - name: Run 통합 크롤러
         run: |
-          node crawler/mss.js
           node crawler/bizinfo.js
-          node crawler/merge.js
 
       - name: Commit result
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add .
-          git commit -m "자동 정책 업데이트" || exit 0
+          git add policies.json
+          git commit -m "자동 정책 업데이트 (통합)" || exit 0
           git push
