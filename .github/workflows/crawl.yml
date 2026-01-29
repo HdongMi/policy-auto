@@ -1,12 +1,8 @@
-name: Auto Crawl Policies
-
-permissions:
-  contents: write
-
+name: crawl
 
 on:
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "0 3 * * *"   # 매일 오전 12시 (한국시간)
   workflow_dispatch:
 
 jobs:
@@ -14,30 +10,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Install deps
         run: |
-          cd $GITHUB_WORKSPACE
-          ls -la
-          npm install
+          npm init -y
+          npm install node-fetch cheerio
 
-      - name: Run crawler
+      - name: Run crawlers
         run: |
-          cd $GITHUB_WORKSPACE
-          node crawler.js
+          node crawler/mss.js
+          node crawler/bizinfo.js
+          node crawler/semas.js
+          node crawler/merge.js
 
       - name: Commit result
         run: |
-          cd $GITHUB_WORKSPACE
           git config user.name "github-actions"
-          git config user.email "actions@github.com"
+          git config user.email "github-actions@github.com"
           git add policies.json
-          git commit -m "자동 정책 업데이트" || echo "no changes"
+          git commit -m "자동 정책 업데이트" || echo "No changes"
           git push
