@@ -7,16 +7,22 @@ const URL =
 
 async function crawl() {
   try {
-    const { data } = await axios.get(URL);
-    const $ = cheerio.load(data);
+    const { data } = await axios.get(URL, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+      }
+    });
 
+    const $ = cheerio.load(data);
     const policies = [];
 
-    $(".bdList tbody tr").each((_, el) => {
-      const title = $(el).find(".tit a").text().trim();
-      const linkPath = $(el).find(".tit a").attr("href");
+    $("tbody tr").each((_, el) => {
+      const aTag = $(el).find("a");
+      const title = aTag.text().trim();
+      const linkPath = aTag.attr("href");
 
-      if (!title) return;
+      if (!title || !linkPath) return;
       if (
         !title.includes("소상공인") &&
         !title.includes("정책자금") &&
@@ -38,13 +44,13 @@ async function crawl() {
 
     fs.writeFileSync(
       "policies.json",
-      JSON.stringify(policies, null, 2),
-      "utf-8"
+      JSON.stringify(policies, null, 2)
     );
 
-    console.log(`완료: ${policies.length}건`);
-  } catch (e) {
-    console.error(e);
+    console.log("성공:", policies.length);
+  } catch (err) {
+    console.error("크롤링 에러:", err.message);
+    process.exit(1);
   }
 }
 
