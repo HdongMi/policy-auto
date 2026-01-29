@@ -1,5 +1,10 @@
 {
   "name": "policy-auto",
   "version": "1.0.0",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "node-fetch": "^3.3.2",
+    "playwright": "^1.58.0"
+  }
 }
