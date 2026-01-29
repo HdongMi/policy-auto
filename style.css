@@ -1,137 +1,78 @@
-* {
-  box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
-  background: #ffffff;
+  background: #f8f9fa;
   color: #111;
 }
 
-.header {
-  padding: 16px;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.header h1 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.header p {
-  margin: 6px 0 12px;
-  font-size: 13px;
-  color: #666;
-}
-
-.filters {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-select {
-  padding: 10px;
-  font-size: 14px;
-}
-
-.status-buttons {
-  display: flex;
-  gap: 6px;
-}
-
-.status-buttons button {
-  flex: 1;
-  padding: 8px;
-  border: 1px solid #ddd;
-  background: #fff;
-  font-size: 13px;
-}
-
-.status-buttons button.active {
-  background: #111;
-  color: #fff;
-}
-
-#policyList {
-  padding: 16px;
-}
-
-.card {
-  border: 1px solid #eaeaea;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-
-.card .status {
-  font-size: 12px;
-  color: #2e7d32;
-}
-
-.card h3 {
-  margin: 6px 0;
-  font-size: 16px;
-}
-
-.card p {
-  margin: 4px 0;
-  font-size: 13px;
-  color: #555;
-}
-
-.detail {
+/* 랜딩 페이지 */
+.landing {
   position: fixed;
   inset: 0;
-  background: #fff;
-  padding: 16px;
-  overflow-y: auto;
-}
-
-.hidden {
-  display: none;
-}
-
-#backBtn {
-  border: none;
-  background: none;
-  font-size: 14px;
-  margin-bottom: 10px;
-}
-
-.detail-section {
-  margin-bottom: 14px;
-}
-
-.source {
-  font-size: 12px;
-  color: #777;
-}
-
-.apply-btn {
-  display: block;
-  margin-top: 20px;
-  padding: 12px;
-  text-align: center;
-  background: #111;
-  color: #fff;
-  text-decoration: none;
-}
-
-.badges {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  z-index: 1000;
+  transition: opacity 0.5s ease;
+}
+.landing-icon { font-size: 5rem; margin-bottom: 20px; }
+.landing h1 { font-size: 1.8rem; margin-bottom: 15px; }
+.start-btn {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #764ba2;
+  background: white;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-.badge {
-  font-size: 11px;
-  padding: 3px 6px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  color: #333;
+/* 메인 레이아웃 */
+.header {
+  padding: 20px 16px;
+  background: white;
+  border-bottom: 1px solid #eaeaea;
+  position: sticky;
+  top: 0; z-index: 100;
+}
+.header h1 { margin: 0; font-size: 22px; }
+.filters { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+select { padding: 12px; border-radius: 8px; border: 1px solid #ddd; }
+.status-buttons { display: flex; gap: 8px; }
+.status-buttons button {
+  flex: 1; padding: 10px; border: 1px solid #ddd; background: white; border-radius: 8px;
+}
+.status-buttons button.active { background: #111; color: white; border-color: #111; }
+
+/* 카드 스타일 */
+#policyList { padding: 16px; }
+.card {
+  background: white;
+  padding: 18px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+}
+.card h3 { margin: 8px 0; font-size: 17px; line-height: 1.4; }
+.card .status-label { font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+
+/* 상세 화면 */
+.detail {
+  position: fixed; inset: 0; background: white; padding: 25px; 
+  overflow-y: auto; z-index: 2000;
+}
+#backBtn { border: none; background: #f0f0f0; padding: 8px 15px; border-radius: 20px; margin-bottom: 20px; }
+.detail-section { margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+.apply-btn {
+  display: block; width: 100%; padding: 16px; text-align: center;
+  background: #764ba2; color: white; text-decoration: none; border-radius: 12px; font-weight: bold;
 }
 
-.badge-region {
-  background: #f5f5f5;
-}
+.hidden { display: none !important; }
