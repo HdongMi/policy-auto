@@ -3,78 +3,77 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>소상공인 정책 공고</title>
+  <title>소상공인 정책 알리미</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<header class="header">
-  <h1>소상공인 정책 공고</h1>
-  <p>현재 확인 가능한 정책 공고를 정리했습니다</p>
-
-  <div class="filters">
-    <select id="regionFilter">
-      <option value="전체">전체 지역</option>
-      <option value="전국">전국</option>
-      <option value="서울">서울</option>
-      <option value="경기">경기</option>
-      <option value="부산">부산</option>
-      <option value="대구">대구</option>
-      <option value="인천">인천</option>
-      <option value="광주">광주</option>
-      <option value="대전">대전</option>
-      <option value="울산">울산</option>
-      <option value="세종">세종</option>
-      <option value="강원">강원</option>
-      <option value="충북">충북</option>
-      <option value="충남">충남</option>
-      <option value="전북">전북</option>
-      <option value="전남">전남</option>
-      <option value="경북">경북</option>
-      <option value="경남">경남</option>
-      <option value="제주">제주</option>
-    </select>
-
-    <!-- 상태 탭 -->
-    <div class="status-buttons">
-      <button data-status="전체" class="active">전체</button>
-      <button data-status="마감">마감</button>
+  <div id="landingPage" class="landing">
+    <div class="landing-content">
+      <div class="landing-icon">📢</div>
+      <h1>안녕하세요!<br>소상공인 정책 알리미입니다</h1>
+      <p>나에게 딱 맞는 지원사업과<br>혜택 정보를 한곳에서 확인하세요.</p>
+      <button id="startBtn" class="start-btn">소상공인 정책 살펴보기</button>
     </div>
   </div>
-</header>
 
-<main id="policyList"></main>
+  <div id="mainLayout" class="hidden">
+    <header class="header">
+      <h1>소상공인 정책 공고</h1>
+      <p>현재 확인 가능한 정책 공고를 정리했습니다</p>
 
-<!-- 상세 화면 -->
-<div id="detailView" class="detail hidden">
-  <button id="backBtn">← 뒤로</button>
+      <div class="filters">
+        <select id="regionFilter">
+          <option value="전체">전체 지역</option>
+          <option value="전국">전국</option>
+          <option value="서울">서울</option>
+          <option value="경기">경기</option>
+          <option value="부산">부산</option>
+          <option value="대구">대구</option>
+          <option value="인천">인천</option>
+          <option value="광주">광주</option>
+          <option value="대전">대전</option>
+          <option value="울산">울산</option>
+          <option value="세종">세종</option>
+          <option value="강원">강원</option>
+          <option value="충북">충북</option>
+          <option value="충남">충남</option>
+          <option value="전북">전북</option>
+          <option value="전남">전남</option>
+          <option value="경북">경북</option>
+          <option value="경남">경남</option>
+          <option value="제주">제주</option>
+        </select>
 
-  <h2 id="detailTitle"></h2>
+        <div class="status-buttons">
+          <button data-status="전체" class="active">전체</button>
+          <button data-status="마감">마감</button>
+        </div>
+      </div>
+    </header>
 
-  <div class="detail-section">
-    <strong>📍 대상</strong>
-    <p id="detailTarget"></p>
+    <main id="policyList">
+      </main>
   </div>
 
-  <div class="detail-section">
-    <strong>💰 지원내용</strong>
-    <p id="detailContent"></p>
+  <div id="detailView" class="detail hidden">
+    <button id="backBtn">← 뒤로가기</button>
+    <h2 id="detailTitle"></h2>
+    <div class="detail-section">
+      <strong>📍 대상/지역</strong>
+      <p id="detailTarget"></p>
+    </div>
+    <div class="detail-section">
+      <strong>📅 신청기간</strong>
+      <p id="detailDeadline"></p>
+    </div>
+    <div class="detail-section">
+      <strong>🏛️ 출처</strong>
+      <p id="detailSource"></p>
+    </div>
+    <a id="detailLink" class="apply-btn" target="_blank">공식 공고 페이지로 이동</a>
   </div>
 
-  <div class="detail-section">
-    <strong>📅 신청기간</strong>
-    <p id="detailDeadline"></p>
-  </div>
-
-  <div class="detail-section source">
-    <p id="detailSource"></p>
-  </div>
-
-  <a id="detailLink" class="apply-btn" target="_blank">
-    공식 공고 페이지로 이동
-  </a>
-</div>
-
-<script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
