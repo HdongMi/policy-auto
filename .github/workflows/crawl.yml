@@ -27,7 +27,6 @@ jobs:
         run: |
           node crawler/mss.js
           node crawler/bizinfo.js
-          node crawler/semas.js
           node crawler/merge.js
 
       - name: Commit result
