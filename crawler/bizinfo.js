@@ -1,15 +1,21 @@
 import fs from "fs";
+import path from "path";
 import { chromium } from "playwright";
 
 async function crawlBizInfo() {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({ 
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+  });
   const context = await browser.newContext();
   const page = await context.newPage();
 
   try {
     const URL = "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/list.do";
-    await page.goto(URL, { waitUntil: "networkidle" });
-    await page.waitForSelector(".table_list tbody tr", { timeout: 10000 });
+    console.log("🚀 크롤링을 시작합니다...");
+
+    await page.goto(URL, { waitUntil: "networkidle", timeout: 60000 });
+    await page.waitForSelector(".table_list tbody tr", { timeout: 15000 });
 
     const policies = await page.evaluate(() => {
       const rows = Array.from(document.querySelectorAll(".table_list tbody tr"));
@@ -17,37 +23,41 @@ async function crawlBizInfo() {
         const titleEl = row.querySelector("td.tit a");
         if (!titleEl) return null;
 
-        // 1. 링크 문제 해결: javascript 코드에서 ID만 추출하여 실제 URL 생성
-        const href = titleEl.getAttribute("onclick") || titleEl.getAttribute("href") || "";
-        const idMatch = href.match(/'([^']+)'/); // 'PBLN_0000000000123' 형태 추출
+        const onClickAttr = titleEl.getAttribute("onclick") || "";
+        const idMatch = onClickAttr.match(/['"](PBLN_[^'"]+)['"]/); 
         const pblancId = idMatch ? idMatch[1] : "";
+        
         const realLink = pblancId 
           ? `https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/view.do?pblancId=${pblancId}`
           : "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/list.do";
 
-        // 2. 신청기간 문제 해결: td들 중 '날짜' 패턴이 있는 칸을 정확히 찾기
         const tds = Array.from(row.querySelectorAll("td"));
-        // 날짜가 보통 4번째 td(index 3)에 있지만, 안전하게 '202X'가 포함된 텍스트를 찾음
-        const deadlineTd = tds.find(td => /\d{4}/.test(td.innerText))?.innerText.trim() || "공고문 참조";
+        const dateCell = tds.find(td => /\d{4}\.\d{2}\.\d{2}/.test(td.innerText)) || tds[3];
+        let deadlineTd = dateCell ? dateCell.innerText.trim() : "공고문 참조";
+        
+        if (deadlineTd.length < 5) deadlineTd = "공고문 참조";
 
         return {
           title: titleEl.innerText.replace(/\s+/g, ' ').trim(),
           region: "전국",
-          amount: "",
+          amount: "공고문 참조",
           deadline: deadlineTd,
           target: "중소기업·소상공인",
-          content: "기업마당 공고",
+          content: "기업마당 정책공고입니다.",
           source: "출처: 기업마당",
           link: realLink
         };
       }).filter(item => item !== null && item.title !== "");
     });
 
-    fs.writeFileSync("bizinfo.json", JSON.stringify(policies, null, 2));
-    console.log("✅ 기업마당 상세 링크 및 날짜 최적화 완료:", policies.length, "건");
+    // 핵심: 현재 실행 위치와 상관없이 프로젝트 최상위의 policies.json에 저장
+    const filePath = path.join(process.cwd(), "policies.json");
+    fs.writeFileSync(filePath, JSON.stringify(policies, null, 2));
+    
+    console.log(`✅ 업데이트 완료! 총 ${policies.length}개의 공고가 policies.json에 저장되었습니다.`);
 
   } catch (error) {
-    console.error("❌ 크롤링 에러:", error);
+    console.error("❌ 크롤링 중 에러 발생:", error);
   } finally {
     await browser.close();
   }
