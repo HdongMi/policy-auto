@@ -1,4 +1,5 @@
 import fs from "fs";
+import path from "path"; // 경로 처리를 위해 추가
 import { chromium } from "playwright";
 
 async function crawlBizInfo() {
@@ -9,23 +10,24 @@ async function crawlBizInfo() {
   const context = await browser.newContext();
   const page = await context.newPage();
 
+  // 핵심: 파일이 저장될 절대 경로를 설정 (프로젝트 최상위의 policies.json)
+  const filePath = path.join(process.cwd(), "policies.json");
+
   try {
     const URL = "https://www.bizinfo.go.kr/web/lay1/bbs/S1T122C128/AS/74/list.do";
-    console.log("🚀 크롤링 시작 (데이터 누적 모드)...");
+    console.log("🚀 크롤링 시작 (루트 폴더 저장 모드)...");
 
-    // 1. 기존 데이터 읽어오기 (없으면 빈 배열)
+    // 1. 기존 데이터 읽기 (최상위 경로에서 가져옴)
     let existingPolicies = [];
-    try {
-      if (fs.existsSync("policies.json")) {
-        existingPolicies = JSON.parse(fs.readFileSync("policies.json", "utf8"));
+    if (fs.existsSync(filePath)) {
+      try {
+        existingPolicies = JSON.parse(fs.readFileSync(filePath, "utf8"));
+      } catch (e) {
+        console.log("기존 파일 읽기 실패, 새로 생성합니다.");
       }
-    } catch (e) {
-      console.log("기존 파일이 없어 새로 생성합니다.");
     }
 
     await page.goto(URL, { waitUntil: "networkidle", timeout: 60000 });
-    
-    // 테이블 로딩을 위해 3초 더 대기
     await page.waitForTimeout(3000); 
     await page.waitForSelector(".table_list tbody tr", { timeout: 30000 });
 
@@ -59,16 +61,16 @@ async function crawlBizInfo() {
       }).filter(item => item !== null);
     });
 
-    // 2. 중복 제거 후 합치기 (제목 기준)
+    // 2. 중복 제거 및 병합
     const combined = [...newPolicies, ...existingPolicies];
     const uniquePolicies = combined.filter((v, i, a) => a.findIndex(t => t.title === v.title) === i);
 
-    // 3. 다시 policies.json으로 저장
-    fs.writeFileSync("policies.json", JSON.stringify(uniquePolicies, null, 2));
-    console.log(`✅ 업데이트 완료: 새 공고 ${newPolicies.length}건 추가 (총 ${uniquePolicies.length}건)`);
+    // 3. 최상위 경로에 파일 쓰기
+    fs.writeFileSync(filePath, JSON.stringify(uniquePolicies, null, 2));
+    console.log(`✅ 업데이트 성공: 총 ${uniquePolicies.length}건이 ${filePath}에 저장되었습니다.`);
 
   } catch (error) {
-    console.error("❌ 에러 발생:", error);
+    console.error("❌ 크롤링 에러:", error);
   } finally {
     await browser.close();
   }
