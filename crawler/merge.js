@@ -8,14 +8,12 @@ function readJSON(path) {
 const mss = readJSON("mss.json");
 const bizinfo = readJSON("bizinfo.json");
 
-
 const allPolicies = [
   ...mss,
-  ...bizinfo,
-  ...semas
+  ...bizinfo
 ];
 
-// 제목 중복 제거
+// 제목 기준 중복 제거
 const unique = [];
 const titles = new Set();
 
@@ -26,7 +24,7 @@ for (const p of allPolicies) {
   }
 }
 
-// 최신순 정렬 (날짜 없는 건 뒤로)
+// 마감일 기준 정렬 (빠른 날짜 먼저)
 unique.sort((a, b) => {
   if (!a.deadline) return 1;
   if (!b.deadline) return -1;
