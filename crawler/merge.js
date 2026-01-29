@@ -7,7 +7,7 @@ function readJSON(path) {
 
 const mss = readJSON("mss.json");
 const bizinfo = readJSON("bizinfo.json");
-const semas = readJSON("semas.json");
+
 
 const allPolicies = [
   ...mss,
