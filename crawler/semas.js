@@ -1,6 +1,7 @@
 import fs from "fs";
 import fetch from "node-fetch";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
+
 
 const URL = "https://www.semas.or.kr/web/lay1/program/S1T122C128/business/list.do";
 
