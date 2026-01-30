@@ -10,42 +10,52 @@ const toggleBtns = document.querySelectorAll('.toggle-btn');
 const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
 
-// 1. 랜딩 페이지 제어
-startBtn.onclick = () => {
-    sessionStorage.setItem('visited', 'true');
-    landingPage.style.opacity = '0';
-    setTimeout(() => {
-        landingPage.classList.add('hidden');
-        mainLayout.classList.remove('hidden');
-        fetchData();
-    }, 500);
-};
-
+// 1. 랜딩 페이지 및 세션 제어
+// 'info.html'로 이동했다가 돌아왔을 때를 위해 세션 체크를 최상단에 둡니다.
 if (sessionStorage.getItem('visited') === 'true') {
-    landingPage.classList.add('hidden');
-    mainLayout.classList.remove('hidden');
+    if (landingPage) landingPage.style.display = 'none'; // 랜딩 즉시 제거
+    if (mainLayout) mainLayout.classList.remove('hidden');
     fetchData();
 }
 
+if (startBtn) {
+    startBtn.onclick = () => {
+        sessionStorage.setItem('visited', 'true');
+        landingPage.style.opacity = '0';
+        setTimeout(() => {
+            landingPage.classList.add('hidden');
+            mainLayout.classList.remove('hidden');
+            fetchData();
+        }, 500);
+    };
+}
+
 // 2. 검색 이벤트
-searchInput.addEventListener('input', (e) => {
-    searchQuery = e.target.value.toLowerCase();
-    render();
-});
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value.toLowerCase();
+        render();
+    });
+}
 
 // 3. 데이터 로드
 function fetchData() {
+    if (!listEl) return;
     listEl.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>데이터 로딩 중...</p>";
     fetch(`https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`)
         .then(res => res.json())
         .then(data => {
             policies = data;
             render();
+        })
+        .catch(err => {
+            listEl.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>데이터를 불러올 수 없습니다.</p>";
         });
 }
 
 // 4. 렌더링 (필터 + 검색 적용)
 function render() {
+    if (!listEl) return;
     listEl.innerHTML = "";
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -102,6 +112,7 @@ function parseDate(str) {
     return null;
 }
 
+// 5. 상세 보기
 function openDetail(p) {
     document.getElementById("detailTitle").innerText = p.title;
     document.getElementById("detailTarget").innerText = p.region || "전국";
@@ -112,8 +123,12 @@ function openDetail(p) {
     window.scrollTo(0, 0);
 }
 
-document.getElementById("backBtn").onclick = () => detailView.classList.add("hidden");
+const backBtn = document.getElementById("backBtn");
+if (backBtn) {
+    backBtn.onclick = () => detailView.classList.add("hidden");
+}
 
+// 6. 필터 탭 (접수중/마감) - '지원자격' 탭과는 별개입니다.
 toggleBtns.forEach(btn => {
     btn.onclick = () => {
         toggleBtns.forEach(b => b.classList.remove("active"));
