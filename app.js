@@ -14,21 +14,25 @@ startBtn.addEventListener('click', () => {
   setTimeout(() => {
     landingPage.classList.add('hidden');
     mainLayout.classList.remove('hidden');
-    fetchData(); // 전환될 때 데이터를 가져옵니다.
+    fetchData(); 
   }, 500);
 });
 
-// 2. 데이터 가져오기
+// 2. 데이터 가져오기 (캐시 방지 추가)
 function fetchData() {
-  listEl.innerHTML = "<p>데이터를 불러오는 중입니다...</p>";
-  fetch("https://HdongMi.github.io/policy-auto/policies.json")
+  listEl.innerHTML = "<p>최신 정책 공고를 불러오는 중입니다...</p>";
+  // 파일명 뒤에 타임스탬프를 붙여 항상 최신 파일을 가져오게 합니다.
+  const url = `https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`;
+  
+  fetch(url)
     .then(res => res.json())
     .then(data => {
       policies = data;
       render();
     })
     .catch(err => {
-      listEl.innerHTML = "<p>공고를 불러올 수 없습니다. 잠시 후 다시 시 de.</p>";
+      console.error(err);
+      listEl.innerHTML = "<p>공고를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.</p>";
     });
 }
 
@@ -39,21 +43,38 @@ function render() {
   const today = new Date();
 
   const filtered = policies.filter(p => {
-    const regionMatch = (selectedRegion === "전체" || p.region === selectedRegion || p.region === "전국");
+    // 지역 필터링
+    const regionMatch = (selectedRegion === "전체" || p.region.includes(selectedRegion) || p.region === "전국");
     
-    let statusMatch = true;
-    if (currentStatus === "마감") {
-      const deadline = new Date(p.deadline.replace(/\./g, '-'));
-      statusMatch = deadline < today;
-    } else if (currentStatus === "전체") {
-      statusMatch = true; // 진행중 위주로 보려면 여기서 조절 가능
+    // 상태 필터링 (날짜 형식이 20260228 또는 2026-02-28 등 다양할 수 있어 안전하게 처리)
+    let isClosed = false;
+    if (p.deadline && p.deadline.length >= 8) {
+      const dateStr = p.deadline.replace(/[^0-9]/g, ''); // 숫자만 추출
+      const year = dateStr.substring(0, 4);
+      const month = dateStr.substring(4, 6);
+      const day = dateStr.substring(6, 8);
+      const deadlineDate = new Date(`${year}-${month}-${day}`);
+      isClosed = !isNaN(deadlineDate) && deadlineDate < today;
     }
-    return regionMatch && statusMatch;
+
+    if (currentStatus === "마감") return regionMatch && isClosed;
+    if (currentStatus === "진행중") return regionMatch && !isClosed;
+    return regionMatch;
   });
 
+  if (filtered.length === 0) {
+    listEl.innerHTML = "<p style='text-align:center; padding:20px;'>조건에 맞는 공고가 없습니다.</p>";
+    return;
+  }
+
   filtered.forEach(p => {
-    const deadlineDate = new Date(p.deadline.replace(/\./g, '-'));
-    const isClosed = !isNaN(deadlineDate) && deadlineDate < today;
+    // 마감 여부 재계산
+    let isClosed = false;
+    if (p.deadline && p.deadline.length >= 8) {
+      const dateStr = p.deadline.replace(/[^0-9]/g, '');
+      const deadlineDate = new Date(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
+      isClosed = !isNaN(deadlineDate) && deadlineDate < today;
+    }
 
     const card = document.createElement("div");
     card.className = "card";
@@ -62,7 +83,7 @@ function render() {
         ${isClosed ? "● 마감" : "● 진행중"}
       </div>
       <h3>${p.title}</h3>
-      <p style="font-size:13px; color:#666;">📍 지역: ${p.region} | 📅 마감: ${p.deadline}</p>
+      <p style="font-size:13px; color:#666;">📍 지역: ${p.region} | 📅 기한: ${p.deadline}</p>
     `;
     card.onclick = () => openDetail(p);
     listEl.appendChild(card);
