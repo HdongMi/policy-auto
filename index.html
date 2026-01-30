@@ -6,17 +6,67 @@
   <title>소상공인 정책 알리미</title>
   <link rel="stylesheet" href="style.css" />
   <style>
+    /* 기본 레이아웃 제어 */
     .landing { display: none; opacity: 1; transition: opacity 0.5s; }
     .hidden { display: none !important; }
     .d-day { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
-    .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-    .tab-btn {
-      padding: 10px 15px; background: #f1f3f5; border-radius: 8px; 
-      text-decoration: none; color: #666; font-weight: bold; font-size: 0.9rem;
+
+    /* 헤더 및 제목 중앙 정렬 */
+    .header {
+      text-align: center;
+      padding: 30px 0 20px 0;
     }
-    .tab-btn.active { background: #2e59d9; color: white; }
-    /* 필터 영역 정렬 수정 */
-    .filters { display: flex; justify-content: center; margin-bottom: 20px; }
+    .header h1 {
+      font-size: 26px;
+      font-weight: 800;
+      margin-bottom: 25px;
+      color: #333;
+      letter-spacing: -0.5px;
+    }
+
+    /* 네비게이션 탭: 순서 및 크기 조정 */
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+    .tab-btn {
+      /* 버튼 크기 키움 */
+      padding: 14px 24px;
+      background: #f8f9fa;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      text-decoration: none;
+      color: #555;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .tab-btn.active {
+      background: #2e59d9;
+      color: white;
+      border-color: #2e59d9;
+    }
+
+    /* 상태 필터 버튼 중앙 정렬 */
+    .filters {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    
+    /* 모바일 가독성 보정 */
+    @media (max-width: 480px) {
+      .tab-btn {
+        padding: 12px 18px;
+        font-size: 0.95rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -32,11 +82,11 @@
 
   <div id="mainLayout" class="hidden">
     <header class="header">
-      <h1>소상공인 정책 공고</h1>
+      <h1>소상공인 정책 알리미</h1>
       
       <div class="nav-tabs">
-        <a href="index.html" class="tab-btn active">📋 공고 목록</a>
         <a href="info.html" class="tab-btn">💡 지원자격 안내</a>
+        <a href="index.html" class="tab-btn active">📋 공고 목록</a>
       </div>
 
       <div class="filters">
