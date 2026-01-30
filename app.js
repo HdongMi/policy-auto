@@ -19,28 +19,24 @@ function showMainLayout() {
 async function fetchData() {
     const listEl = document.getElementById('policyList');
     try {
-        const cacheBuster = new Date().getTime();
-        const res = await fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${cacheBuster}`);
+        const res = await fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${new Date().getTime()}`);
         policies = await res.json();
         render();
     } catch (err) {
-        if (listEl) listEl.innerHTML = "<div style='padding:40px; text-align:center;'>데이터 로드 실패</div>";
+        if (listEl) listEl.innerHTML = "<p style='text-align:center; padding:50px;'>데이터를 불러올 수 없습니다.</p>";
     }
 }
 
 function checkUrlParam() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const policyTitle = urlParams.get('policy');
-    if (policyTitle && policies.length > 0) {
-        const decodedTitle = decodeURIComponent(policyTitle);
-        const found = policies.find(p => p.title.includes(decodedTitle));
+    const pTitle = new URLSearchParams(window.location.search).get('policy');
+    if (pTitle && policies.length > 0) {
+        const found = policies.find(p => p.title.includes(decodeURIComponent(pTitle)));
         if (found) showDetailUI(found);
     }
 }
 
 function openDetail(p) {
-    const urlSafeTitle = encodeURIComponent(p.title.substring(0, 15));
-    history.pushState({ view: 'detail', policy: p }, p.title, `?policy=${urlSafeTitle}`);
+    history.pushState({ view: 'detail', policy: p }, p.title, `?policy=${encodeURIComponent(p.title.substring(0, 15))}`);
     showDetailUI(p);
 }
 
@@ -51,7 +47,6 @@ function showDetailUI(p) {
     document.getElementById("detailSource").innerText = p.source;
     document.getElementById("detailLink").href = p.link;
 
-    document.getElementById('landingPage')?.classList.add('hidden');
     document.getElementById('mainLayout')?.classList.add('hidden');
     document.getElementById('detailView')?.classList.remove('hidden');
     window.scrollTo(0, 0);
@@ -69,16 +64,13 @@ function render() {
     const listEl = document.getElementById('policyList');
     if (!listEl) return;
     listEl.innerHTML = "";
-    const today = new Date();
-    today.setHours(0,0,0,0);
+    const today = new Date().setHours(0,0,0,0);
 
     const filtered = policies.filter(p => {
         const dDate = parseDate(p.deadline);
         const isClosed = dDate ? dDate < today : false;
-        const statusMatch = (currentStatus === "접수중") ? !isClosed : isClosed;
-        const searchMatch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          p.region.toLowerCase().includes(searchQuery.toLowerCase());
-        return statusMatch && searchMatch;
+        return (currentStatus === "접수중" ? !isClosed : isClosed) && 
+               (p.title + p.region).toLowerCase().includes(searchQuery.toLowerCase());
     });
 
     filtered.forEach(p => {
@@ -92,9 +84,9 @@ function render() {
 
 function parseDate(str) {
     if (!str || /상세참조|소진시|상시/.test(str)) return new Date("2099-12-31");
-    const target = str.includes('~') ? (str.split('~')[1]?.trim() || str.split('~')[0].trim()) : str;
-    const clean = target.replace(/[^0-9]/g, '');
-    return clean.length >= 8 ? new Date(`${clean.substr(0,4)}-${clean.substr(4,2)}-${clean.substr(6,2)}`) : null;
+    const t = str.includes('~') ? (str.split('~')[1]?.trim() || str.split('~')[0].trim()) : str;
+    const c = t.replace(/[^0-9]/g, '');
+    return c.length >= 8 ? new Date(`${c.substr(0,4)}-${c.substr(4,2)}-${c.substr(6,2)}`) : null;
 }
 
 function setupEventListeners() {
@@ -111,12 +103,11 @@ function setupEventListeners() {
             document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             currentStatus = btn.innerText.trim();
-            const slider = document.querySelector('.toggle-slider');
-            if(slider) slider.style.transform = currentStatus === "마감" ? "translateX(100%)" : "translateX(0)";
+            const s = document.querySelector('.toggle-slider');
+            if(s) s.style.transform = currentStatus === "마감" ? "translateX(100%)" : "translateX(0)";
             render();
         };
     });
-    document.getElementById('backBtn').onclick = () => history.back();
 }
 
 init();
