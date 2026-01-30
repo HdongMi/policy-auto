@@ -1,16 +1,17 @@
 let policies = [];
-let currentStatus = "접수중"; // HTML 초기 활성 버튼이 '접수중'이므로 맞춤
+let currentStatus = "접수중"; // HTML 초기 활성 버튼 상태
 let searchQuery = "";
 
+// HTML 요소 연결
 const landingPage = document.getElementById('landingPage');
 const mainLayout = document.getElementById('mainLayout');
 const startBtn = document.getElementById('startBtn');
 const listEl = document.getElementById('policyList');
-const toggleButtons = document.querySelectorAll('.toggle-btn'); // toggle-btn으로 변경
+const toggleButtons = document.querySelectorAll('.toggle-btn');
 const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
 
-// 1. 초기화 및 뒤로가기 감지
+// 1. 초기 실행 (방문 기록 확인)
 function init() {
     const isVisited = sessionStorage.getItem('visited');
     if (isVisited === 'true') {
@@ -20,6 +21,7 @@ function init() {
     }
 }
 
+// 브라우저 뒤로가기 대응 (상세페이지 끄기)
 window.onpopstate = (event) => {
     if (event.state && event.state.view === 'detail') {
         showDetailUI(event.state.policy);
@@ -37,7 +39,7 @@ startBtn.onclick = () => {
 
 // 2. 데이터 가져오기
 function fetchData() {
-    listEl.innerHTML = "<div class='loading-msg'>최신 공고 동기화 중...</div>";
+    listEl.innerHTML = "<div style='padding:40px; text-align:center;'>공고를 불러오는 중...</div>";
     const cacheBuster = new Date().getTime();
     fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${cacheBuster}`)
         .then(res => res.json())
@@ -46,11 +48,11 @@ function fetchData() {
             render();
         })
         .catch(err => {
-            listEl.innerHTML = "<div class='error-msg'>데이터를 불러오는 데 실패했습니다.</div>";
+            listEl.innerHTML = "<div style='padding:40px; text-align:center; color:red;'>데이터 로딩 실패</div>";
         });
 }
 
-// 3. 상세 페이지 로직 (URL 변경 포함)
+// 3. 상세 페이지 노출 로직
 function openDetail(p) {
     const urlSafeTitle = encodeURIComponent(p.title.substring(0, 10));
     history.pushState({ view: 'detail', policy: p }, p.title, `?policy=${urlSafeTitle}`);
@@ -79,7 +81,7 @@ function closeDetailUI() {
     mainLayout.classList.remove("hidden");
 }
 
-// 4. 날짜 파싱 및 마감 로직 (오늘 날짜 기준 2026-01-30)
+// 4. 날짜 판단 (마감 여부)
 function parseDate(str) {
     if (!str || str.includes("상세참조") || str.includes("소진시") || str.includes("상시")) {
         return new Date("2099-12-31"); 
@@ -87,7 +89,7 @@ function parseDate(str) {
     let datePart = str;
     if (str.includes('~')) {
         const parts = str.split('~');
-        datePart = parts[1].trim() || parts[0].trim();
+        datePart = parts[1] && parts[1].trim().length > 5 ? parts[1].trim() : parts[0].trim();
     }
     const cleanStr = datePart.replace(/[^0-9]/g, '');
     if (cleanStr.length >= 8) {
@@ -96,21 +98,19 @@ function parseDate(str) {
     return null;
 }
 
-// 5. 렌더링 (필터 적용)
+// 5. 필터링 및 리스트 출력
 function render() {
     listEl.innerHTML = "";
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const filtered = policies.filter(p => {
-        // A. 마감 여부 계산
         const deadlineDate = parseDate(p.deadline);
         const isClosed = deadlineDate ? deadlineDate < today : false;
 
-        // B. 토글 상태 필터 (접수중 / 마감)
-        let statusMatch = (currentStatus === "접수중") ? !isClosed : isClosed;
-
-        // C. 검색어 필터
+        // 접수중/마감 토글 필터
+        const statusMatch = (currentStatus === "접수중") ? !isClosed : isClosed;
+        // 검색어 필터
         const searchMatch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           p.region.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -118,7 +118,7 @@ function render() {
     });
 
     if (filtered.length === 0) {
-        listEl.innerHTML = `<div class='empty-msg'>${currentStatus}인 공고가 없습니다.</div>`;
+        listEl.innerHTML = `<div style='padding:50px; text-align:center; color:#888;'>조회된 ${currentStatus} 공고가 없습니다.</div>`;
         return;
     }
 
@@ -131,7 +131,7 @@ function render() {
     });
 }
 
-// 6. 이벤트 리스너
+// 6. 이벤트 연결
 if (searchInput) {
     searchInput.oninput = (e) => {
         searchQuery = e.target.value;
@@ -143,7 +143,7 @@ toggleButtons.forEach(btn => {
     btn.onclick = () => {
         toggleButtons.forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-        currentStatus = btn.innerText.trim(); // 버튼 안의 텍스트(접수중/마감)를 상태로 사용
+        currentStatus = btn.innerText.trim();
         render();
     };
 });
