@@ -5,10 +5,8 @@ const landingPage = document.getElementById('landingPage');
 const mainLayout = document.getElementById('mainLayout');
 const startBtn = document.getElementById('startBtn');
 const listEl = document.getElementById('policyList');
-const regionFilter = document.getElementById('regionFilter');
 const statusButtons = document.querySelectorAll('.status-buttons button');
 
-// 1. 초기화 함수: 방문 여부 체크
 function init() {
   const isVisited = sessionStorage.getItem('visited');
   if (isVisited === 'true') {
@@ -20,7 +18,6 @@ function init() {
   }
 }
 
-// 2. 시작 버튼 클릭 핸들러
 startBtn.addEventListener('click', () => {
   sessionStorage.setItem('visited', 'true');
   landingPage.style.opacity = '0';
@@ -31,7 +28,6 @@ startBtn.addEventListener('click', () => {
   }, 500);
 });
 
-// 3. 데이터 가져오기
 function fetchData() {
   listEl.innerHTML = "<p style='text-align:center; padding:20px;'>최신 정책 공고를 불러오는 중입니다...</p>";
   const url = `https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`;
@@ -48,41 +44,35 @@ function fetchData() {
     });
 }
 
-// 💡 날짜 문자열에서 최종 종료일을 뽑아내는 헬퍼 함수
 function getEndDate(deadlineStr) {
   if (!deadlineStr || deadlineStr === "상세참조") return null;
-  // "~" 가 있으면 뒤쪽 날짜 사용, 없으면 전체 사용
   const parts = deadlineStr.split('~');
   const target = parts.length > 1 ? parts[1] : parts[0];
-  const dateStr = target.replace(/[^0-9]/g, ''); // 숫자만 추출
+  const dateStr = target.replace(/[^0-9]/g, '');
   if (dateStr.length >= 8) {
     return new Date(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
   }
   return null;
 }
 
-// 4. 목록 그리기
 function render() {
   listEl.innerHTML = "";
-  const selectedRegion = regionFilter.value;
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
   const filtered = policies.filter(p => {
-    const regionMatch = (selectedRegion === "전체" || p.region.includes(selectedRegion) || p.region === "전국");
-    
     let isClosed = false;
     const deadlineDate = getEndDate(p.deadline);
     if (deadlineDate) {
       isClosed = deadlineDate < today;
     }
 
-    if (currentStatus === "마감") return regionMatch && isClosed;
-    return regionMatch && !isClosed;
+    if (currentStatus === "마감") return isClosed;
+    return !isClosed;
   });
 
   if (filtered.length === 0) {
-    listEl.innerHTML = `<p style='text-align:center; padding:50px; color:#888;'>조건에 맞는 공고가 없습니다.</p>`;
+    listEl.innerHTML = `<p style='text-align:center; padding:50px; color:#888;'>공고가 없습니다.</p>`;
     return;
   }
 
@@ -121,7 +111,6 @@ function render() {
   });
 }
 
-// 5. 상세 보기 및 필터 이벤트
 function openDetail(p) {
   document.getElementById("detailTitle").textContent = p.title;
   document.getElementById("detailTarget").textContent = p.region || "전국";
@@ -135,7 +124,7 @@ function openDetail(p) {
 }
 
 document.getElementById("backBtn").onclick = () => document.getElementById("detailView").classList.add("hidden");
-regionFilter.onchange = render;
+
 statusButtons.forEach(btn => {
   btn.onclick = () => {
     statusButtons.forEach(b => b.classList.remove("active"));
