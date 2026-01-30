@@ -4,54 +4,45 @@ import fetch from "node-fetch";
 import { parseStringPromise } from "xml2js";
 
 async function run() {
-  // 인증키를 인코딩된 상태와 디코딩된 상태 모두 대응할 수 있게 처리
-  const RAW_KEY = "e8e40ea23b405a5abba75382a331e61f9052570e9e95a7ca6cf5db14818ba22b";
-  const SERVICE_KEY = encodeURIComponent(decodeURIComponent(RAW_KEY)); 
+  // 1. 인증키 (인코딩 없이 원본 그대로 사용)
+  const SERVICE_KEY = "e8e40ea23b405a5abba75382a331e61f9052570e9e95a7ca6cf5db14818ba22b";
   
-  // 주소에서 returnType을 빼고 가장 기본형으로 요청 (서버가 JSON을 거부할 때 대비)
-  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100`;
+  // 2. 검색 시작일을 2025년 1월 1일로 고정 (데이터가 무조건 있는 날짜)
+  const START_DATE = "20250101";
+  
+  // 3. 주소 재구성 (가장 표준적인 파라미터 조합)
+  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=50&returnType=json&pblancServiceStartDate=${START_DATE}`;
 
   const filePath = path.join(process.cwd(), "policies.json");
 
   try {
-    console.log(`📡 API 접속 시도 중...`);
+    console.log(`📡 API 요청 시작...`);
     const response = await fetch(URL);
     const text = await response.text();
 
-    // 0건일 때 이유를 찾기 위한 핵심 로그
-    if (text.includes("NORMAL_CODE") && !text.includes("<item>")) {
-      console.log("⚠️ 서버 응답은 정상이나 데이터(item)가 비어있습니다.");
-      console.log("📝 서버 응답 전체 내용:", text); // 여기서 원인을 파악해야 합니다.
-    }
+    // 서버가 준 실제 내용을 무조건 로그에 찍어서 정체를 밝힙니다.
+    console.log("-----------------------------------------");
+    console.log("📝 서버 실제 응답 (앞부분 500자):");
+    console.log(text.substring(0, 500));
+    console.log("-----------------------------------------");
 
     let itemsArray = [];
+
+    // XML 형태일 때 처리
     if (text.includes("<item>")) {
       const xmlData = await parseStringPromise(text);
-      
-      // XML 내부를 아주 깊게 뒤지는 로직
-      const findItem = (obj) => {
-        if (!obj) return null;
-        if (obj.item) return obj.item;
-        if (Array.isArray(obj)) {
-          for (let e of obj) {
-            const res = findItem(e);
-            if (res) return res;
-          }
-        } else if (typeof obj === 'object') {
-          for (let key in obj) {
-            const res = findItem(obj[key]);
-            if (res) return res;
-          }
-        }
-        return null;
-      };
-
-      const rawItems = findItem(xmlData);
-      itemsArray = Array.isArray(rawItems) ? rawItems : (rawItems ? [rawItems] : []);
+      // 가장 안전하게 item을 찾아가는 경로
+      const items = xmlData?.response?.body?.[0]?.items?.[0]?.item;
+      itemsArray = Array.isArray(items) ? items : (items ? [items] : []);
+    } 
+    // JSON 형태일 때 처리
+    else if (text.startsWith("{") || text.includes('"response"')) {
+      const data = JSON.parse(text);
+      itemsArray = data.response?.body?.items || [];
     }
 
     if (itemsArray.length === 0) {
-      console.log("❌ 데이터 추출 실패. 서버 응답에 <item> 태그가 없습니다.");
+      console.log("❌ 결과: 데이터가 0건입니다. (서버 응답 확인 필요)");
       return;
     }
 
@@ -77,10 +68,10 @@ async function run() {
     }, []);
 
     fs.writeFileSync(filePath, JSON.stringify(unique, null, 2), "utf8");
-    console.log(`✅ 드디어! ${newPolicies.length}건 저장 완료.`);
+    console.log(`✅ 성공! ${newPolicies.length}건을 새로 가져왔습니다.`);
 
   } catch (error) {
-    console.error("❌ 치명적 오류:", error.message);
+    console.error("❌ 에러 발생:", error.message);
   }
 }
 
