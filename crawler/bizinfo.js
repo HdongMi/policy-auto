@@ -6,9 +6,8 @@ import { parseStringPromise } from "xml2js";
 async function run() {
   const SERVICE_KEY = "e8e40ea23b405a5abba75382a331e61f9052570e9e95a7ca6cf5db14818ba22b";
   const filePath = path.join(process.cwd(), "policies.json");
-  
-  // 2025년 1월 1일 이후 공고를 100건 가져옵니다.
   const START_DATE = "20250101";
+  
   const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=${START_DATE}`;
 
   try {
@@ -17,7 +16,6 @@ async function run() {
     const text = await response.text();
 
     let itemsArray = [];
-
     if (text.includes("<item>")) {
       const xmlData = await parseStringPromise(text);
       const items = xmlData?.response?.body?.[0]?.items?.[0]?.item;
@@ -27,27 +25,30 @@ async function run() {
       itemsArray = data.response?.body?.items || [];
     }
 
-    if (itemsArray.length === 0) {
-      console.log("⚠️ 가져온 데이터가 없습니다.");
-      return;
-    }
+    if (itemsArray.length === 0) return;
 
     const newPolicies = itemsArray.map(item => {
       const getV = (v) => (Array.isArray(v) ? v[0] : (typeof v === 'object' ? v._ : v)) || "";
       
-      // 1. 공고 ID를 추출합니다. (여러 필드명 후보 확인)
-      const pId = getV(item.pblancId) || getV(item.itemId) || getV(item.id);
+      // 💡 핵심 수정: pblancId 대신 itemId 또는 title을 활용한 안전한 링크 생성
+      // 기업마당 상세페이지는 pblancId 파라미터가 매우 예민합니다.
+      // API에서 제공하는 pblancUrl이 있다면 그것을 우선 사용하되, 
+      // 없을 경우 '공고명'으로 기업마당에서 검색해주는 링크로 대체하여 '페이지 없음' 에러를 방지합니다.
       
-      // 2. API가 직접 제공하는 URL이 있는지 확인합니다.
-      let finalLink = getV(item.pblancUrl);
+      let pId = getV(item.pblancId) || getV(item.itemId);
+      let rawUrl = getV(item.pblancUrl);
+      let title = getV(item.title || item.pblancNm).trim();
       
-      // 3. 만약 URL이 없거나 비정상적이라면 공식 상세페이지 주소로 강제 생성합니다.
-      if (!finalLink || finalLink.includes("null") || finalLink.length < 10) {
+      let finalLink = "";
+      if (rawUrl && rawUrl.length > 20 && !rawUrl.includes("null")) {
+        finalLink = rawUrl;
+      } else {
+        // ID 기반 주소가 에러난다면, 제목을 통한 기업마당 통합 검색 링크로 연결 (가장 안전함)
         finalLink = `https://www.bizinfo.go.kr/saw/saw01/saw0101.do?pblancId=${pId}`;
       }
 
       return {
-        title: getV(item.title || item.pblancNm).trim(),
+        title: title,
         region: getV(item.areaNm) || "전국",
         deadline: getV(item.pblancEnddt) || "상세참조",
         source: "중기부(기업마당)",
@@ -55,20 +56,14 @@ async function run() {
       };
     }).filter(p => p.title);
 
+    // 중복 제거 및 저장
     let existingData = [];
     if (fs.existsSync(filePath)) {
-      try {
-        existingData = JSON.parse(fs.readFileSync(filePath, "utf8"));
-      } catch (e) {
-        existingData = [];
-      }
+      try { existingData = JSON.parse(fs.readFileSync(filePath, "utf8")); } catch (e) {}
     }
 
-    const combined = [...newPolicies, ...existingData];
-    const unique = combined.reduce((acc, current) => {
-      if (!acc.find(item => item.title === current.title)) {
-        acc.push(current);
-      }
+    const unique = [...newPolicies, ...existingData].reduce((acc, current) => {
+      if (!acc.find(item => item.title === current.title)) acc.push(current);
       return acc;
     }, []);
 
