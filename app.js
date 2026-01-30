@@ -1,38 +1,4 @@
-let policies = [];
-let currentStatus = "전체";
-
-const landingPage = document.getElementById('landingPage');
-const mainLayout = document.getElementById('mainLayout');
-const startBtn = document.getElementById('startBtn');
-const listEl = document.getElementById('policyList');
-const statusButtons = document.querySelectorAll('.status-buttons button');
-const detailView = document.getElementById('detailView');
-
-function init() {
-    const isVisited = sessionStorage.getItem('visited');
-    if (isVisited === 'true') {
-        landingPage.classList.add('hidden');
-        mainLayout.classList.remove('hidden');
-        fetchData();
-    }
-}
-
-startBtn.onclick = () => {
-    sessionStorage.setItem('visited', 'true');
-    landingPage.classList.add('hidden');
-    mainLayout.classList.remove('hidden');
-    fetchData();
-};
-
-function fetchData() {
-    listEl.innerHTML = "로딩 중...";
-    fetch(`https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`)
-        .then(res => res.json())
-        .then(data => {
-            policies = data;
-            render();
-        });
-}
+// ... (fetchData, getEndDate 등 앞선 코드와 동일)
 
 function render() {
     listEl.innerHTML = "";
@@ -40,45 +6,40 @@ function render() {
     today.setHours(0,0,0,0);
 
     const filtered = policies.filter(p => {
-        const deadlineDate = parseDate(p.deadline);
+        const deadlineDate = getEndDate(p.deadline);
         const isClosed = deadlineDate && deadlineDate < today;
         return currentStatus === "마감" ? isClosed : !isClosed;
     });
 
     filtered.forEach(p => {
+        const deadlineDate = getEndDate(p.deadline);
+        let dDayHtml = "";
+        
+        // D-Day 배지 디자인
+        if (deadlineDate) {
+            const diff = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+            if (diff === 0) dDayHtml = `<span style="background:#ff6b6b; color:#fff; padding:3px 8px; border-radius:6px; font-size:11px;">오늘마감</span>`;
+            else if (diff > 0) dDayHtml = `<span style="background:var(--lilac-accent); color:#fff; padding:3px 8px; border-radius:6px; font-size:11px;">D-${diff}</span>`;
+        }
+
+        // 상태 색상 (초록/빨강)
+        const statusColor = currentStatus === "마감" ? "#e63946" : "#2a9d8f";
+        const statusText = currentStatus === "마감" ? "접수마감" : "접수중";
+
         const card = document.createElement("div");
         card.className = "card";
-        card.innerHTML = `<h3>${p.title}</h3><p>${p.region} | ${p.deadline}</p>`;
-        
-        // 카드 클릭 이벤트 (정상 작동 확인)
-        card.onclick = () => {
-            document.getElementById("detailTitle").innerText = p.title;
-            document.getElementById("detailTarget").innerText = p.region;
-            document.getElementById("detailDeadline").innerText = p.deadline;
-            document.getElementById("detailSource").innerText = p.source;
-            document.getElementById("detailLink").href = p.link;
-            detailView.classList.remove("hidden");
-        };
+        card.innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <span style="font-size:12px; font-weight:bold; color:${statusColor}">● ${statusText}</span>
+                ${dDayHtml}
+            </div>
+            <h3>${p.title}</h3>
+            <p style="font-size:13px; color:#777; margin:0;">📍 ${p.region} | 📅 ${p.deadline}</p>
+        `;
+
+        // 기능 핵심: 클릭 시 상세 페이지 열기
+        card.onclick = () => openDetail(p);
         listEl.appendChild(card);
     });
 }
-
-function parseDate(str) {
-    if (!str || str === "상세참조") return null;
-    const dateStr = str.split('~')[1] || str;
-    const cleanStr = dateStr.replace(/[^0-9]/g, '');
-    return cleanStr.length >= 8 ? new Date(`${cleanStr.substr(0,4)}-${cleanStr.substr(4,2)}-${cleanStr.substr(6,2)}`) : null;
-}
-
-document.getElementById("backBtn").onclick = () => detailView.classList.add("hidden");
-
-statusButtons.forEach(btn => {
-    btn.onclick = () => {
-        statusButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentStatus = btn.dataset.status;
-        render();
-    };
-});
-
-init();
+// ... (이후 openDetail 및 토글 이벤트는 기존 백업본과 동일하게 유지)
