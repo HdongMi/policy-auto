@@ -5,6 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>소상공인 정책 알리미</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* D-Day 및 네비게이션 스타일 추가 */
+    .nav-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .info-link-btn {
+      padding: 10px 20px;
+      background-color: #f1f3f5;
+      color: #495057;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      transition: 0.3s;
+    }
+    .info-link-btn:hover { background-color: #e9ecef; color: #2e59d9; }
+    
+    .d-day {
+      background: #ff4757; color: white; padding: 2px 8px; border-radius: 4px;
+      font-size: 0.75rem; font-weight: bold; margin-left: 8px; vertical-align: middle;
+    }
+    .d-day.today { background: #eccc68; color: #333; }
+  </style>
 </head>
 <body>
 
@@ -21,6 +47,11 @@
     <header class="header">
       <h1>소상공인 정책 공고</h1>
       <p>현재 확인 가능한 정책 공고를 정리했습니다</p>
+
+      <div class="nav-tabs">
+        <a href="index.html" class="info-link-btn" style="background: #2e59d9; color: white;">📋 공고 목록</a>
+        <a href="info.html" class="info-link-btn">💡 지원자격 안내</a>
+      </div>
 
       <div class="filters">
         <select id="regionFilter">
@@ -46,7 +77,7 @@
         </select>
 
         <div class="status-buttons">
-          <button data-status="전체" class="active">전체</button>
+          <button data-status="전체" class="active">접수중</button>
           <button data-status="마감">마감</button>
         </div>
       </div>
