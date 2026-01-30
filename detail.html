@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>상세 정보 - 소상공인 정책 알리미</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <h1>상세 정보</h1>
+    <nav class="nav-tabs">
+        <a href="index.html" class="tab-btn">← 목록으로 돌아가기</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="info-card" id="detailContent">
+      <h2 id="detailTitle">로딩 중...</h2>
+      <div class="detail-container" style="margin-top:20px;">
+        <div class="detail-section" style="margin-bottom:15px;">
+            <strong>📍 대상/지역</strong><p id="detailTarget">-</p>
+        </div>
+        <div class="detail-section" style="margin-bottom:15px;">
+            <strong>📅 신청기간</strong><p id="detailDeadline">-</p>
+        </div>
+        <div class="detail-section" style="margin-bottom:15px;">
+            <strong>🏛️ 출처</strong><p id="detailSource">-</p>
+        </div>
+      </div>
+      <a id="detailLink" class="apply-btn" target="_blank" style="display:block; text-align:center; padding:15px; background:var(--lilac); color:white; border-radius:10px; text-decoration:none; font-weight:bold; margin-top:30px;">공식 공고 페이지로 이동</a>
+    </div>
+  </main>
+
+  <script>
+    // URL에 담긴 정보를 가져오는 로직
+    const params = new URLSearchParams(window.location.search);
+    
+    // 주소창에서 정보를 읽어와 화면에 뿌려줍니다.
+    document.getElementById("detailTitle").innerText = params.get("title");
+    document.getElementById("detailTarget").innerText = params.get("region") || "전국";
+    document.getElementById("detailDeadline").innerText = params.get("deadline");
+    document.getElementById("detailSource").innerText = params.get("source");
+    document.getElementById("detailLink").href = params.get("link");
+  </script>
+</body>
+</html>
