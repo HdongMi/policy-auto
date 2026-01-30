@@ -6,22 +6,21 @@ import { parseStringPromise } from "xml2js";
 async function run() {
   const SERVICE_KEY = "e8e40ea23b405a5abba75382a331e61f9052570e9e95a7ca6cf5db14818ba22b";
   
-  // 1. URL 수정: 날짜 파라미터를 빼거나 형식을 조정하여 가장 넓은 범위를 조회
-  // pblancServiceStartDate를 빼면 기본적으로 최신 공고를 줍니다.
-  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json`;
+  // 1. 날짜 설정 (매우 중요: YYYYMMDD 형식)
+  // 오늘 기준으로 약 한 달 전 공고부터 가져오도록 설정합니다.
+  const date = new Date();
+  date.setMonth(date.getMonth() - 1); 
+  const startDate = date.toISOString().split('T')[0].replace(/-/g, ''); // 예: 20240420
+
+  // 2. 파라미터에 pblancServiceStartDate 추가
+  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=${startDate}`;
 
   const filePath = path.join(process.cwd(), "policies.json");
 
   try {
-    console.log("📡 중소벤처기업부 API(v2) 접속 중...");
+    console.log(`📡 중소벤처기업부 API 접속 중... (검색시작일: ${startDate})`);
     const response = await fetch(URL);
     const text = await response.text();
-
-    // 서버가 에러를 줬는지 확인
-    if (text.includes("<resultMsg>")) {
-       const msg = text.match(/<resultMsg>(.*?)<\/resultMsg>/)?.[1];
-       console.log(`📝 서버 응답 메시지: ${msg}`);
-    }
 
     let itemsArray = [];
 
@@ -29,7 +28,7 @@ async function run() {
       console.log("📝 XML 응답 감지, 파싱 시작...");
       const xmlData = await parseStringPromise(text);
       
-      // 중기부 XML 특유의 깊은 계층 구조를 훑습니다.
+      // XML의 경우 경로가 매우 깊을 수 있으므로 단계별로 확인
       const body = xmlData?.response?.body?.[0];
       const itemsContainer = body?.items?.[0];
       
@@ -42,7 +41,7 @@ async function run() {
     }
 
     if (itemsArray.length === 0) {
-      console.log("⚠️ 가져온 데이터가 0건입니다. (서버 응답 내용 일부):", text.substring(0, 200));
+      console.log("⚠️ 데이터를 찾지 못했습니다. 서버 응답:", text.substring(0, 200));
       return;
     }
 
@@ -78,7 +77,7 @@ async function run() {
     }, []);
 
     fs.writeFileSync(filePath, JSON.stringify(unique, null, 2), "utf8");
-    console.log(`✅ 성공! API에서 ${newPolicies.length}건을 읽어왔고, 최종 ${unique.length}건이 저장되었습니다.`);
+    console.log(`✅ 성공! ${newPolicies.length}건을 가져와 최종 ${unique.length}건 저장됨.`);
 
   } catch (error) {
     console.error("❌ 오류 발생:", error.message);
