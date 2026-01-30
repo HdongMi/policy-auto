@@ -1,78 +1,88 @@
-* { box-sizing: border-box; }
+/* 변수 설정: 나중에 색상만 바꿀 때 편리합니다 */
+:root {
+    --bg-color: #f8f7ff;
+    --card-bg: #ffffff;
+    --lilac-main: #d6d1ff;
+    --lilac-dark: #7b6ab3;
+    --lilac-soft: #a095cc;
+    --border-color: #efedff;
+}
+
 body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
-  background: #f8f9fa;
-  color: #111;
+    margin: 0;
+    padding: 0;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
-/* 랜딩 페이지 */
-.landing {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: white;
-  z-index: 1000;
-  transition: opacity 0.5s ease;
-}
-.landing-icon { font-size: 5rem; margin-bottom: 20px; }
-.landing h1 { font-size: 1.8rem; margin-bottom: 15px; }
-.start-btn {
-  padding: 15px 40px;
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #764ba2;
-  background: white;
-  border: none;
-  border-radius: 30px;
-  cursor: pointer;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+.container {
+    width: 90%;
+    max-width: 800px;
+    background: var(--card-bg);
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(180, 160, 220, 0.15);
+    overflow: hidden;
 }
 
-/* 메인 레이아웃 */
-.header {
-  padding: 20px 16px;
-  background: white;
-  border-bottom: 1px solid #eaeaea;
-  position: sticky;
-  top: 0; z-index: 100;
-}
-.header h1 { margin: 0; font-size: 22px; }
-.filters { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
-select { padding: 12px; border-radius: 8px; border: 1px solid #ddd; }
-.status-buttons { display: flex; gap: 8px; }
-.status-buttons button {
-  flex: 1; padding: 10px; border: 1px solid #ddd; background: white; border-radius: 8px;
-}
-.status-buttons button.active { background: #111; color: white; border-color: #111; }
-
-/* 카드 스타일 */
-#policyList { padding: 16px; }
-.card {
-  background: white;
-  padding: 18px;
-  margin-bottom: 12px;
-  border-radius: 12px;
-  border: 1px solid #eee;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-}
-.card h3 { margin: 8px 0; font-size: 17px; line-height: 1.4; }
-.card .status-label { font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-
-/* 상세 화면 */
-.detail {
-  position: fixed; inset: 0; background: white; padding: 25px; 
-  overflow-y: auto; z-index: 2000;
-}
-#backBtn { border: none; background: #f0f0f0; padding: 8px 15px; border-radius: 20px; margin-bottom: 20px; }
-.detail-section { margin-bottom: 20px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
-.apply-btn {
-  display: block; width: 100%; padding: 16px; text-align: center;
-  background: #764ba2; color: white; text-decoration: none; border-radius: 12px; font-weight: bold;
+/* 헤더 */
+.main-header {
+    background: linear-gradient(135deg, #efedff 0%, #e2dfff 100%);
+    padding: 40px;
+    text-align: center;
 }
 
-.hidden { display: none !important; }
+.main-header h1 {
+    margin: 0;
+    color: var(--lilac-dark);
+}
+
+/* 컨텐츠 분할 (Grid) */
+.content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background-color: var(--border-color);
+    gap: 1px;
+}
+
+.info-card {
+    background-color: #fff;
+    padding: 30px;
+}
+
+.info-card h2 {
+    color: var(--lilac-soft);
+    font-size: 1.1rem;
+}
+
+/* 버튼 */
+.main-footer {
+    padding: 30px;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: var(--lilac-main);
+    color: var(--lilac-dark);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #c4bdff;
+    transform: translateY(-2px);
+}
+
+/* 반응형 */
+@media (max-width: 600px) {
+    .content-wrapper {
+        grid-template-columns: 1fr;
+    }
+}
