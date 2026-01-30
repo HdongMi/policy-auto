@@ -11,7 +11,7 @@ async function run() {
   const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=${START_DATE}`;
 
   try {
-    console.log(`📡 중기부 상세 페이지 번호(bcIdx) 추적 수집 시작...`);
+    console.log(`📡 중기부 상세 데이터 정밀 수집 시작...`);
     const response = await fetch(URL);
     const text = await response.text();
 
@@ -27,37 +27,48 @@ async function run() {
     for (const item of itemsArray) {
       const getV = (v) => (Array.isArray(v) ? v[0] : (typeof v === 'object' ? v._ : v)) || "";
       const title = getV(item.title || item.pblancNm).trim();
+      let deadline = getV(item.pblancEnddt) || "상세참조"; // API 기본값
       
-      // 기본값은 게시판 검색 링크로 설정 (혹시 상세번호를 못 찾을 경우 대비)
       let finalLink = `https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310&searchTarget=ALL&searchKeyword=${encodeURIComponent(title)}`;
 
       try {
-        // 🔍 중기부 게시판에 실제로 물어봐서 게시물 번호(bcIdx) 가져오기
         const searchRes = await fetch(finalLink);
         const html = await searchRes.text();
         
-        // HTML 소스 내에서 View.do?cbIdx=310&bcIdx=숫자 패턴을 찾아냄
+        // 1. 게시물 번호(bcIdx) 추출
         const match = html.match(/bcIdx=(\d+)/);
         if (match && match[1]) {
           const bcIdx = match[1];
           finalLink = `https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=${bcIdx}`;
-          console.log(`✅ 찾았다! [${bcIdx}] : ${title}`);
+          
+          // 2. 🔍 상세 페이지에 직접 접속해서 "신청기간" 긁어오기
+          const detailRes = await fetch(finalLink);
+          const detailHtml = await detailRes.text();
+          
+          // HTML 내에서 "신청기간" 뒤에 오는 날짜 패턴(0000-00-00 ~ 0000-00-00)을 찾습니다.
+          const datePattern = /신청기간\s*[:\s]*(\d{4}-\d{2}-\d{2}\s*~\s*\d{4}-\d{2}-\d{2})/;
+          const dateMatch = detailHtml.match(datePattern);
+          
+          if (dateMatch && dateMatch[1]) {
+            deadline = dateMatch[1].trim(); // 예: "2026-02-11 ~ 2026-03-03"
+            console.log(`✅ 날짜 확보: ${deadline} | ${title}`);
+          }
         }
       } catch (e) {
-        console.log(`⚠️ 상세번호 추출 실패, 검색 링크 유지: ${title}`);
+        console.log(`⚠️ 상세 데이터 추출 중 오류: ${title}`);
       }
 
       newPolicies.push({
         title: title,
         region: getV(item.areaNm) || "전국",
-        deadline: getV(item.pblancEnddt) || "상세참조",
+        deadline: deadline,
         source: "중소벤처기업부",
         link: finalLink
       });
     }
 
     fs.writeFileSync(filePath, JSON.stringify(newPolicies, null, 2), "utf8");
-    console.log(`✅ 총 ${newPolicies.length}건, 상세 페이지 직결 업데이트 완료!`);
+    console.log(`✅ 총 ${newPolicies.length}건 정밀 업데이트 완료!`);
 
   } catch (error) {
     console.error("❌ 오류 발생:", error.message);
