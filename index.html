@@ -6,7 +6,6 @@
   <title>소상공인 정책 알리미</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* 초기 로딩 시 깜빡임 방지를 위해 landing은 기본 숨김 */
     .landing { display: none; opacity: 1; transition: opacity 0.5s; }
     .hidden { display: none !important; }
     .d-day { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
@@ -16,6 +15,8 @@
       text-decoration: none; color: #666; font-weight: bold; font-size: 0.9rem;
     }
     .tab-btn.active { background: #2e59d9; color: white; }
+    /* 필터 영역 정렬 수정 */
+    .filters { display: flex; justify-content: center; margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -39,28 +40,6 @@
       </div>
 
       <div class="filters">
-        <select id="regionFilter">
-          <option value="전체">전체 지역</option>
-          <option value="전국">전국</option>
-          <option value="서울">서울</option>
-          <option value="경기">경기</option>
-          <option value="부산">부산</option>
-          <option value="대구">대구</option>
-          <option value="인천">인천</option>
-          <option value="광주">광주</option>
-          <option value="대전">대전</option>
-          <option value="울산">울산</option>
-          <option value="세종">세종</option>
-          <option value="강원">강원</option>
-          <option value="충북">충북</option>
-          <option value="충남">충남</option>
-          <option value="전북">전북</option>
-          <option value="전남">전남</option>
-          <option value="경북">경북</option>
-          <option value="경남">경남</option>
-          <option value="제주">제주</option>
-        </select>
-
         <div class="status-buttons">
           <button data-status="전체" class="active">접수중</button>
           <button data-status="마감">마감</button>
