@@ -23,7 +23,7 @@ async function fetchData() {
         policies = await res.json();
         render();
     } catch (err) {
-        if (listEl) listEl.innerHTML = "<p style='text-align:center; padding:50px;'>데이터를 불러올 수 없습니다.</p>";
+        if (listEl) listEl.innerHTML = "<p style='text-align:center; padding:50px;'>데이터 로드 실패</p>";
     }
 }
 
