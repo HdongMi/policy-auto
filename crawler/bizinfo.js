@@ -6,9 +6,9 @@ import { parseStringPromise } from "xml2js";
 async function run() {
   const SERVICE_KEY = "e8e40ea23b405a5abba75382a331e61f9052570e9e95a7ca6cf5db14818ba22b";
   
-  // 오늘 날짜 기준으로 최근 1년치 공고를 긁어오도록 설정 (예: 20240101)
-  const START_DATE = "20240101"; 
-  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&_type=json&pblancServiceStartDate=${START_DATE}`;
+  // 1. URL 수정: 날짜 파라미터를 빼거나 형식을 조정하여 가장 넓은 범위를 조회
+  // pblancServiceStartDate를 빼면 기본적으로 최신 공고를 줍니다.
+  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json`;
 
   const filePath = path.join(process.cwd(), "policies.json");
 
@@ -17,22 +17,22 @@ async function run() {
     const response = await fetch(URL);
     const text = await response.text();
 
-    if (text.includes("SERVICE_KEY_IS_NOT_REGISTERED_ERROR")) {
-      console.log("❌ 에러: 인증키가 등록되지 않았습니다.");
-      return;
+    // 서버가 에러를 줬는지 확인
+    if (text.includes("<resultMsg>")) {
+       const msg = text.match(/<resultMsg>(.*?)<\/resultMsg>/)?.[1];
+       console.log(`📝 서버 응답 메시지: ${msg}`);
     }
 
     let itemsArray = [];
 
     if (text.trim().startsWith("<?xml") || text.includes("<response>")) {
-      console.log("📝 XML 응답을 감지하여 JSON으로 변환합니다...");
+      console.log("📝 XML 응답 감지, 파싱 시작...");
       const xmlData = await parseStringPromise(text);
       
-      // XML 구조 분석 (중기부 v2 API의 실제 깊은 경로 탐색)
+      // 중기부 XML 특유의 깊은 계층 구조를 훑습니다.
       const body = xmlData?.response?.body?.[0];
       const itemsContainer = body?.items?.[0];
       
-      // item이 배열일 수도 있고 단일 객체일 수도 있음
       if (itemsContainer && itemsContainer.item) {
         itemsArray = Array.isArray(itemsContainer.item) ? itemsContainer.item : [itemsContainer.item];
       }
@@ -42,9 +42,7 @@ async function run() {
     }
 
     if (itemsArray.length === 0) {
-      console.log("⚠️ 서버에서 가져온 공고 데이터가 실제로 0건입니다.");
-      // 테스트용 로그: 서버가 보낸 원본 텍스트의 앞부분 출력
-      console.log("📝 서버 응답 앞부분:", text.substring(0, 300));
+      console.log("⚠️ 가져온 데이터가 0건입니다. (서버 응답 내용 일부):", text.substring(0, 200));
       return;
     }
 
@@ -64,7 +62,6 @@ async function run() {
       };
     }).filter(p => p.title);
 
-    // 4. 기존 파일 읽기
     let existingData = [];
     if (fs.existsSync(filePath)) {
       try {
@@ -81,7 +78,7 @@ async function run() {
     }, []);
 
     fs.writeFileSync(filePath, JSON.stringify(unique, null, 2), "utf8");
-    console.log(`✅ 처리 완료! API에서 ${newPolicies.length}건을 가져와 중복 제외 후 총 ${unique.length}건 저장.`);
+    console.log(`✅ 성공! API에서 ${newPolicies.length}건을 읽어왔고, 최종 ${unique.length}건이 저장되었습니다.`);
 
   } catch (error) {
     console.error("❌ 오류 발생:", error.message);
