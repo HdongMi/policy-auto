@@ -7,13 +7,11 @@ const mainLayout = document.getElementById('mainLayout');
 const startBtn = document.getElementById('startBtn');
 const listEl = document.getElementById('policyList');
 const toggleBtns = document.querySelectorAll('.toggle-btn');
-const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
 
 // 1. 랜딩 페이지 및 세션 제어
-// 'info.html'로 이동했다가 돌아왔을 때를 위해 세션 체크를 최상단에 둡니다.
 if (sessionStorage.getItem('visited') === 'true') {
-    if (landingPage) landingPage.style.display = 'none'; // 랜딩 즉시 제거
+    if (landingPage) landingPage.style.display = 'none'; 
     if (mainLayout) mainLayout.classList.remove('hidden');
     fetchData();
 }
@@ -53,7 +51,7 @@ function fetchData() {
         });
 }
 
-// 4. 렌더링 (필터 + 검색 적용)
+// 4. 렌더링
 function render() {
     if (!listEl) return;
     listEl.innerHTML = "";
@@ -99,6 +97,7 @@ function render() {
             <p>📍 ${p.region}</p>
             <p>📅 ${p.deadline}</p>
         `;
+        // 클릭 시 새로운 상세 페이지로 이동하도록 수정
         card.onclick = () => openDetail(p);
         listEl.appendChild(card);
     });
@@ -112,23 +111,22 @@ function parseDate(str) {
     return null;
 }
 
-// 5. 상세 보기
+// 5. 상세 페이지로 이동 (URL 파라미터 활용)
 function openDetail(p) {
-    document.getElementById("detailTitle").innerText = p.title;
-    document.getElementById("detailTarget").innerText = p.region || "전국";
-    document.getElementById("detailDeadline").innerText = p.deadline;
-    document.getElementById("detailSource").innerText = p.source;
-    document.getElementById("detailLink").href = p.link;
-    detailView.classList.remove("hidden");
-    window.scrollTo(0, 0);
+    const baseUrl = "detail.html";
+    // 한글이나 특수문자가 주소창에서 깨지지 않도록 encodeURIComponent 사용
+    const params = new URLSearchParams({
+        title: p.title,
+        region: p.region || "전국",
+        deadline: p.deadline,
+        source: p.source || "상세참조",
+        link: p.link
+    });
+    
+    location.href = `${baseUrl}?${params.toString()}`;
 }
 
-const backBtn = document.getElementById("backBtn");
-if (backBtn) {
-    backBtn.onclick = () => detailView.classList.add("hidden");
-}
-
-// 6. 필터 탭 (접수중/마감) - '지원자격' 탭과는 별개입니다.
+// 6. 필터 토글
 toggleBtns.forEach(btn => {
     btn.onclick = () => {
         toggleBtns.forEach(b => b.classList.remove("active"));
