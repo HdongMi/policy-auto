@@ -18,10 +18,9 @@ startBtn.addEventListener('click', () => {
   }, 500);
 });
 
-// 2. 데이터 가져오기 (캐시 방지 추가)
+// 2. 데이터 가져오기 (캐시 방지 쿼리 추가)
 function fetchData() {
   listEl.innerHTML = "<p>최신 정책 공고를 불러오는 중입니다...</p>";
-  // 파일명 뒤에 타임스탬프를 붙여 항상 최신 파일을 가져오게 합니다.
   const url = `https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`;
   
   fetch(url)
@@ -43,17 +42,12 @@ function render() {
   const today = new Date();
 
   const filtered = policies.filter(p => {
-    // 지역 필터링
     const regionMatch = (selectedRegion === "전체" || p.region.includes(selectedRegion) || p.region === "전국");
     
-    // 상태 필터링 (날짜 형식이 20260228 또는 2026-02-28 등 다양할 수 있어 안전하게 처리)
     let isClosed = false;
     if (p.deadline && p.deadline.length >= 8) {
-      const dateStr = p.deadline.replace(/[^0-9]/g, ''); // 숫자만 추출
-      const year = dateStr.substring(0, 4);
-      const month = dateStr.substring(4, 6);
-      const day = dateStr.substring(6, 8);
-      const deadlineDate = new Date(`${year}-${month}-${day}`);
+      const dateStr = p.deadline.replace(/[^0-9]/g, '');
+      const deadlineDate = new Date(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
       isClosed = !isNaN(deadlineDate) && deadlineDate < today;
     }
 
@@ -63,12 +57,11 @@ function render() {
   });
 
   if (filtered.length === 0) {
-    listEl.innerHTML = "<p style='text-align:center; padding:20px;'>조건에 맞는 공고가 없습니다.</p>";
+    listEl.innerHTML = "<p style='text-align:center; padding:20px;'>해당하는 공고가 없습니다.</p>";
     return;
   }
 
   filtered.forEach(p => {
-    // 마감 여부 재계산
     let isClosed = false;
     if (p.deadline && p.deadline.length >= 8) {
       const dateStr = p.deadline.replace(/[^0-9]/g, '');
@@ -90,13 +83,21 @@ function render() {
   });
 }
 
-// 4. 상세 페이지 열기
+// 4. 상세 페이지 열기 (기업마당 보안 우회 적용)
 function openDetail(p) {
   document.getElementById("detailTitle").textContent = p.title;
   document.getElementById("detailTarget").textContent = p.region || "전국";
   document.getElementById("detailDeadline").textContent = p.deadline;
   document.getElementById("detailSource").textContent = p.source;
-  document.getElementById("detailLink").href = p.link;
+  
+  const detailLink = document.getElementById("detailLink");
+  
+  // 🔗 [핵심 수정] 기업마당 '잘못된 접근' 에러 방지 설정
+  // rel="noreferrer"를 설정해야 기업마당 보안 필터를 통과할 확률이 높습니다.
+  detailLink.href = p.link;
+  detailLink.setAttribute("rel", "noreferrer noopener");
+  detailLink.setAttribute("target", "_blank");
+
   document.getElementById("detailView").classList.remove("hidden");
 }
 
