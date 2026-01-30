@@ -1,155 +1,45 @@
-let policies = [];
-let currentStatus = "접수중"; // HTML 초기 활성 버튼 상태
-let searchQuery = "";
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>소상공인 정책 알리미</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
 
-// HTML 요소 연결
-const landingPage = document.getElementById('landingPage');
-const mainLayout = document.getElementById('mainLayout');
-const startBtn = document.getElementById('startBtn');
-const listEl = document.getElementById('policyList');
-const toggleButtons = document.querySelectorAll('.toggle-btn');
-const detailView = document.getElementById('detailView');
-const searchInput = document.getElementById('searchInput');
+  <div id="landingPage" class="landing">
+    <div class="landing-content">
+      <h1>소상공인 정책 알리미</h1>
+      <p class="subtitle">나에게 딱 맞는 지원사업과<br>혜택 정보를 한곳에서 확인하세요.</p>
+      <button id="startBtn" class="start-btn">정책 둘러보기</button>
+    </div>
+  </div>
 
-// 1. 초기 실행 (방문 기록 확인)
-function init() {
-    const isVisited = sessionStorage.getItem('visited');
-    if (isVisited === 'true') {
-        landingPage.classList.add('hidden');
-        mainLayout.classList.remove('hidden');
-        fetchData();
-    }
-}
+  <div id="mainLayout" class="hidden">
+    <header class="header">
+      <h1>소상공인 정책 알리미</h1>
+      <nav class="nav-tabs">
+        <a href="info.html" class="tab-btn">💡 지원자격 안내</a>
+        <a href="index.html" class="tab-btn active">📋 공고 목록</a>
+      </nav>
+      
+      <div class="search-container">
+        <input type="text" id="searchInput" placeholder="정책명이나 지역을 검색해보세요" />
+      </div>
 
-// 브라우저 뒤로가기 대응 (상세페이지 끄기)
-window.onpopstate = (event) => {
-    if (event.state && event.state.view === 'detail') {
-        showDetailUI(event.state.policy);
-    } else {
-        closeDetailUI();
-    }
-};
+      <div class="filters">
+        <div class="toggle-container">
+          <button class="toggle-btn active" data-status="전체">접수중</button>
+          <button class="toggle-btn" data-status="마감">마감</button>
+          <div class="toggle-slider"></div>
+        </div>
+      </div>
+    </header>
 
-startBtn.onclick = () => {
-    sessionStorage.setItem('visited', 'true');
-    landingPage.classList.add('hidden');
-    mainLayout.classList.remove('hidden');
-    fetchData();
-};
+    <main id="policyList"></main>
+  </div>
 
-// 2. 데이터 가져오기
-function fetchData() {
-    listEl.innerHTML = "<div style='padding:40px; text-align:center;'>공고를 불러오는 중...</div>";
-    const cacheBuster = new Date().getTime();
-    fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${cacheBuster}`)
-        .then(res => res.json())
-        .then(data => {
-            policies = [...data];
-            render();
-        })
-        .catch(err => {
-            listEl.innerHTML = "<div style='padding:40px; text-align:center; color:red;'>데이터 로딩 실패</div>";
-        });
-}
-
-// 3. 상세 페이지 노출 로직
-function openDetail(p) {
-    const urlSafeTitle = encodeURIComponent(p.title.substring(0, 10));
-    history.pushState({ view: 'detail', policy: p }, p.title, `?policy=${urlSafeTitle}`);
-    showDetailUI(p);
-}
-
-function showDetailUI(p) {
-    document.getElementById("detailTitle").innerText = p.title;
-    document.getElementById("detailTarget").innerText = p.region;
-    document.getElementById("detailDeadline").innerText = p.deadline;
-    document.getElementById("detailSource").innerText = p.source;
-
-    const oldBtn = document.getElementById("detailLink");
-    const newBtn = oldBtn.cloneNode(true);
-    newBtn.href = p.link;
-    newBtn.target = "_blank";
-    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
-
-    mainLayout.classList.add("hidden");
-    detailView.classList.remove("hidden");
-    window.scrollTo(0, 0);
-}
-
-function closeDetailUI() {
-    detailView.classList.add("hidden");
-    mainLayout.classList.remove("hidden");
-}
-
-// 4. 날짜 판단 (마감 여부)
-function parseDate(str) {
-    if (!str || str.includes("상세참조") || str.includes("소진시") || str.includes("상시")) {
-        return new Date("2099-12-31"); 
-    }
-    let datePart = str;
-    if (str.includes('~')) {
-        const parts = str.split('~');
-        datePart = parts[1] && parts[1].trim().length > 5 ? parts[1].trim() : parts[0].trim();
-    }
-    const cleanStr = datePart.replace(/[^0-9]/g, '');
-    if (cleanStr.length >= 8) {
-        return new Date(`${cleanStr.substr(0,4)}-${cleanStr.substr(4,2)}-${cleanStr.substr(6,2)}`);
-    }
-    return null;
-}
-
-// 5. 필터링 및 리스트 출력
-function render() {
-    listEl.innerHTML = "";
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const filtered = policies.filter(p => {
-        const deadlineDate = parseDate(p.deadline);
-        const isClosed = deadlineDate ? deadlineDate < today : false;
-
-        // 접수중/마감 토글 필터
-        const statusMatch = (currentStatus === "접수중") ? !isClosed : isClosed;
-        // 검색어 필터
-        const searchMatch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          p.region.toLowerCase().includes(searchQuery.toLowerCase());
-
-        return statusMatch && searchMatch;
-    });
-
-    if (filtered.length === 0) {
-        listEl.innerHTML = `<div style='padding:50px; text-align:center; color:#888;'>조회된 ${currentStatus} 공고가 없습니다.</div>`;
-        return;
-    }
-
-    filtered.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `<h3>${p.title}</h3><p>${p.region} | ${p.deadline}</p>`;
-        card.onclick = () => openDetail(p);
-        listEl.appendChild(card);
-    });
-}
-
-// 6. 이벤트 연결
-if (searchInput) {
-    searchInput.oninput = (e) => {
-        searchQuery = e.target.value;
-        render();
-    };
-}
-
-toggleButtons.forEach(btn => {
-    btn.onclick = () => {
-        toggleButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentStatus = btn.innerText.trim();
-        render();
-    };
-});
-
-document.getElementById("backBtn").onclick = () => {
-    history.back();
-};
-
-init();
+  <script src="app.js"></script>
+</body>
+</html>
