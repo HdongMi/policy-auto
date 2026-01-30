@@ -23,9 +23,11 @@
         <a href="info.html" class="tab-btn">💡 지원자격 안내</a>
         <a href="index.html" class="tab-btn active">📋 공고 목록</a>
       </nav>
+      
       <div class="search-container">
         <input type="text" id="searchInput" placeholder="정책명이나 지역을 검색해보세요" />
       </div>
+
       <div class="filters">
         <div class="toggle-container">
           <button class="toggle-btn active" data-status="전체">접수중</button>
@@ -34,13 +36,14 @@
         </div>
       </div>
     </header>
+
     <main id="policyList"></main>
   </div>
 
   <div id="detailView" class="detail hidden">
-    <button id="backBtn">← 뒤로가기</button>
+    <button id="backBtn" style="background:none; border:none; color:var(--lilac); font-weight:bold; cursor:pointer; font-size:16px;">← 뒤로가기</button>
     <div class="detail-header">
-      <h2 id="detailTitle"></h2>
+      <h2 id="detailTitle" style="margin-top:20px;"></h2>
     </div>
     <div class="detail-container">
         <div class="detail-section"><strong>📍 대상/지역</strong><p id="detailTarget"></p></div>
