@@ -8,7 +8,7 @@ const listEl = document.getElementById('policyList');
 const toggleBtns = document.querySelectorAll('.toggle-btn');
 const detailView = document.getElementById('detailView');
 
-// 1. 랜딩 페이지 탈출 (정책 확인하기 클릭)
+// 1. 랜딩 페이지 제어
 startBtn.onclick = () => {
     sessionStorage.setItem('visited', 'true');
     landingPage.style.opacity = '0';
@@ -19,23 +19,28 @@ startBtn.onclick = () => {
     }, 500);
 };
 
-// 2. 초기 로드 (이미 방문했다면 바로 목록으로)
+// 방문 이력 있으면 바로 메인으로
 if (sessionStorage.getItem('visited') === 'true') {
     landingPage.classList.add('hidden');
     mainLayout.classList.remove('hidden');
     fetchData();
 }
 
+// 2. 데이터 가져오기
 function fetchData() {
-    listEl.innerHTML = "<p style='text-align:center;'>데이터 로딩 중...</p>";
+    listEl.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>공고를 불러오는 중입니다...</p>";
     fetch(`https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`)
         .then(res => res.json())
         .then(data => {
             policies = data;
             render();
+        })
+        .catch(err => {
+            listEl.innerHTML = "<p style='text-align:center; padding:50px;'>데이터 로드 실패</p>";
         });
 }
 
+// 3. 리스트 렌더링
 function render() {
     listEl.innerHTML = "";
     const today = new Date();
@@ -47,41 +52,65 @@ function render() {
         return currentStatus === "마감" ? isClosed : !isClosed;
     });
 
+    if (filtered.length === 0) {
+        listEl.innerHTML = "<p style='text-align:center; padding:100px; color:#bbb;'>공고가 없습니다.</p>";
+        return;
+    }
+
     filtered.forEach(p => {
+        const deadlineDate = parseDate(p.deadline);
+        let dDayHtml = "";
+        if (deadlineDate) {
+            const diff = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+            if (diff === 0) dDayHtml = `<span style="background:#ff6b6b; color:white; padding:4px 10px; border-radius:8px; font-size:12px;">오늘마감</span>`;
+            else if (diff > 0) dDayHtml = `<span style="background:var(--lilac); color:white; padding:4px 10px; border-radius:8px; font-size:12px;">D-${diff}</span>`;
+        }
+
+        const statusColor = currentStatus === "마감" ? "#e63946" : "#2a9d8f";
+        const statusText = currentStatus === "마감" ? "접수마감" : "접수중";
+
         const card = document.createElement("div");
         card.className = "card";
-        const statusColor = currentStatus === "마감" ? "#e63946" : "#2a9d8f";
-        
         card.innerHTML = `
-            <div style="margin-bottom:8px; font-weight:bold; color:${statusColor}">● ${currentStatus === "마감" ? "마감" : "접수중"}</div>
-            <h3 style="margin:0 0 10px 0;">${p.title}</h3>
-            <p style="margin:0; font-size:13px; color:#666;">📍 ${p.region} | 📅 ${p.deadline}</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <span style="font-weight:800; color:${statusColor}; font-size:13px;">● ${statusText}</span>
+                ${dDayHtml}
+            </div>
+            <h3>${p.title}</h3>
+            <p>📍 ${p.region}</p>
+            <p>📅 ${p.deadline}</p>
         `;
         
-        // 카드 클릭 기능
-        card.onclick = () => {
-            document.getElementById("detailTitle").innerText = p.title;
-            document.getElementById("detailTarget").innerText = p.region;
-            document.getElementById("detailDeadline").innerText = p.deadline;
-            document.getElementById("detailSource").innerText = p.source;
-            document.getElementById("detailLink").href = p.link;
-            detailView.classList.remove("hidden");
-        };
+        card.onclick = () => openDetail(p);
         listEl.appendChild(card);
     });
 }
 
+// 4. 날짜 파싱
 function parseDate(str) {
     if (!str || str === "상세참조") return null;
     const dateStr = str.split('~')[1] || str;
     const cleanStr = dateStr.replace(/[^0-9]/g, '');
-    return cleanStr.length >= 8 ? new Date(`${cleanStr.substr(0,4)}-${cleanStr.substr(4,2)}-${cleanStr.substr(6,2)}`) : null;
+    if (cleanStr.length >= 8) {
+        return new Date(`${cleanStr.substr(0,4)}-${cleanStr.substr(4,2)}-${cleanStr.substr(6,2)}`);
+    }
+    return null;
 }
 
-// 닫기 기능
+// 5. 상세 모달 제어
+function openDetail(p) {
+    document.getElementById("detailTitle").innerText = p.title;
+    document.getElementById("detailTarget").innerText = p.region || "전국";
+    document.getElementById("detailDeadline").innerText = p.deadline;
+    document.getElementById("detailSource").innerText = p.source;
+    document.getElementById("detailLink").href = p.link;
+    detailView.classList.remove("hidden");
+    window.scrollTo(0, 0);
+}
+
 document.getElementById("backBtn").onclick = () => detailView.classList.add("hidden");
 
-// 토글 기능
+// 6. 토글 필터 제어
 toggleBtns.forEach(btn => {
     btn.onclick = () => {
         toggleBtns.forEach(b => b.classList.remove("active"));
