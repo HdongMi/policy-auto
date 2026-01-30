@@ -12,35 +12,37 @@ const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
 const backBtn = document.getElementById('backBtn');
 
-// 1. 초기화 로직 (URL 파라미터 감지 추가)
-function init() {
-    // 일단 데이터부터 불러옵니다.
-    fetchData().then(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        const policyTitle = urlParams.get('policy');
+// 1. 초기화 로직 (데이터 로딩 완료 후 URL 체크)
+async function init() {
+    // A. 데이터를 먼저 완전히 불러옵니다.
+    await fetchData();
 
-        // URL에 정책 제목이 있으면 바로 상세페이지 노출
-        if (policyTitle) {
-            const decodedTitle = decodeURIComponent(policyTitle);
-            const found = policies.find(p => p.title.includes(decodedTitle));
-            if (found) {
-                showDetailUI(found);
-                return; // 상세페이지 띄웠으면 여기서 중단
-            }
-        }
+    // B. 데이터가 들어온 후 URL 파라미터를 확인합니다.
+    const urlParams = new URLSearchParams(window.location.search);
+    const policyTitle = urlParams.get('policy');
 
-        // URL에 파라미터가 없고 방문 기록이 있다면 메인으로
-        if (sessionStorage.getItem('visited') === 'true') {
-            landingPage.classList.add('hidden');
-            mainLayout.classList.remove('hidden');
+    if (policyTitle) {
+        const decodedTitle = decodeURIComponent(policyTitle);
+        // 제목이 포함된 정책을 찾습니다.
+        const found = policies.find(p => p.title.includes(decodedTitle) || decodedTitle.includes(p.title.substring(0, 10)));
+        
+        if (found) {
+            showDetailUI(found);
+            return; // 상세페이지를 띄웠으면 중단
         }
-    });
+    }
+
+    // C. 상세페이지가 아니고 방문 기록이 있다면 메인으로
+    if (sessionStorage.getItem('visited') === 'true') {
+        landingPage.classList.add('hidden');
+        mainLayout.classList.remove('hidden');
+    }
 }
 
-// 2. 데이터 페칭 (Promise 반환하도록 수정)
+// 2. 데이터 가져오기 (비동기 처리)
 function fetchData() {
-    if (!listEl) return Promise.reject();
-    listEl.innerHTML = `<div style="text-align:center; padding:50px; color:#8e82bd;">최신 정책 데이터를 동기화하고 있습니다...</div>`;
+    if (!listEl) return;
+    listEl.innerHTML = `<div style="text-align:center; padding:50px; color:#8e82bd;">최신 정책 데이터를 동기화 중...</div>`;
     
     const cacheBuster = new Date().getTime();
     return fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${cacheBuster}`)
@@ -54,15 +56,17 @@ function fetchData() {
         });
 }
 
-// 3. 상세 페이지 핸들링
+// 3. 상세 페이지 핸들링 (전환 로직 강화)
 function openDetail(p) {
-    // 주소창에 제목의 앞 10자만 넣어서 가독성 유지
     const urlSafeTitle = encodeURIComponent(p.title.substring(0, 15));
+    // 주소창 업데이트
     history.pushState({ view: 'detail', policy: p }, p.title, `?policy=${urlSafeTitle}`);
     showDetailUI(p);
 }
 
 function showDetailUI(p) {
+    if (!p) return;
+    
     document.getElementById("detailTitle").innerText = p.title;
     document.getElementById("detailTarget").innerText = p.region;
     document.getElementById("detailDeadline").innerText = p.deadline;
@@ -71,6 +75,7 @@ function showDetailUI(p) {
     const applyBtn = document.getElementById("detailLink");
     applyBtn.href = p.link;
 
+    // 모든 레이아웃 숨기고 상세페이지만 표시
     landingPage.classList.add('hidden');
     mainLayout.classList.add('hidden');
     detailView.classList.remove('hidden');
@@ -80,13 +85,13 @@ function showDetailUI(p) {
 function closeDetailUI() {
     detailView.classList.add("hidden");
     mainLayout.classList.remove("hidden");
-    // 뒤로가기 시 URL 원상복구
+    // 뒤로가기 시 파라미터가 없으면 주소 깔끔하게 정리
     if (!window.location.search.includes('policy')) {
         history.replaceState(null, "", window.location.pathname);
     }
 }
 
-// 뒤로가기 버튼 대응
+// 뒤로가기/앞으로가기 대응
 window.onpopstate = (event) => {
     if (event.state && event.state.view === 'detail') {
         showDetailUI(event.state.policy);
@@ -106,7 +111,7 @@ function parseDate(str) {
     return null;
 }
 
-// 5. 렌더링
+// 5. 리스트 렌더링
 function render() {
     if (!listEl) return;
     listEl.innerHTML = "";
@@ -123,7 +128,7 @@ function render() {
     });
 
     if (filtered.length === 0) {
-        listEl.innerHTML = `<div style="text-align:center; padding:100px 20px; color:#aaa;">조회된 공고가 없습니다.</div>`;
+        listEl.innerHTML = `<div style="text-align:center; padding:100px 20px; color:#aaa;">해당 조건의 공고가 없습니다.</div>`;
         return;
     }
 
@@ -136,7 +141,7 @@ function render() {
     });
 }
 
-// 6. 이벤트 등록
+// 6. 버튼 이벤트 리스너
 if (startBtn) {
     startBtn.onclick = () => {
         sessionStorage.setItem('visited', 'true');
@@ -157,7 +162,9 @@ toggleButtons.forEach(btn => {
         toggleButtons.forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         currentStatus = btn.innerText.trim();
-        toggleSlider.style.transform = currentStatus === "마감" ? "translateX(100%)" : "translateX(0)";
+        if(toggleSlider) {
+            toggleSlider.style.transform = currentStatus === "마감" ? "translateX(100%)" : "translateX(0)";
+        }
         render();
     };
 });
@@ -166,5 +173,5 @@ if (backBtn) {
     backBtn.onclick = () => history.back();
 }
 
-// 시작
+// 앱 실행
 init();
