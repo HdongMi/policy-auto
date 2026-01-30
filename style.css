@@ -1,72 +1,50 @@
-/* 📱 상세 모달 (수정됨) */
-.detail { 
-    position: fixed; 
-    inset: 0; 
-    background: white; 
-    padding: 0; /* 내부 패딩은 body에서 조절 */
-    z-index: 3000; 
-    display: flex;
-    flex-direction: column;
-    
-    /* 하단에서 위로 올라오는 효과 */
-    transform: translateY(100%); 
-    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css");
+
+:root {
+    --lilac: #8e82bd;
+    --lilac-soft: #f4f2ff;
+    --lilac-dark: #6a5da1;
+    --font-main: 'Pretendard', sans-serif;
 }
 
-/* hidden이 제거되면 위로 올라옴 */
-.detail:not(.hidden) { 
-    transform: translateY(0); 
-}
+body { font-family: var(--font-main); margin: 0; background: #f9f8ff; color: #333; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+.hidden { display: none !important; }
 
-/* 모달 상단 헤더 고정 */
-.detail-header {
-    padding: 20px;
-    background: #fff;
-    border-bottom: 1px solid #f1f5f9;
-    display: flex;
-    align-items: center;
-    position: sticky;
-    top: 0;
-}
+/* 랜딩 페이지 */
+.landing { position: fixed; inset: 0; background: white; display: flex; align-items: center; justify-content: center; text-align: center; z-index: 2000; transition: opacity 0.5s; }
+.landing h1 { font-size: 28px; color: var(--lilac-dark); margin-bottom: 15px; }
+.subtitle { color: #777; line-height: 1.5; margin-bottom: 30px; }
+.start-btn { padding: 18px 50px; background: var(--lilac); color: white; border: none; border-radius: 35px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(142, 130, 189, 0.2); }
 
-#backBtn { 
-    background: none; 
-    border: none; 
-    font-size: 16px; 
-    color: var(--lilac); 
-    font-weight: 700; 
-    cursor: pointer; 
-}
+/* 헤더 & 검색창 */
+.header { background: white; padding: 40px 20px 20px; text-align: center; border-bottom: 1px solid #f0f0f5; }
+.header h1 { font-size: 22px; color: var(--lilac-dark); margin-bottom: 25px; }
+.nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+.tab-btn { padding: 10px 22px; border-radius: 14px; border: 1px solid #e0e0e5; text-decoration: none; color: #888; font-size: 14px; font-weight: 600; }
+.tab-btn.active { background: var(--lilac-soft); border-color: var(--lilac); color: var(--lilac); }
 
-/* 모달 내부 콘텐츠 스크롤 */
-.detail-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 30px 25px;
-}
+.search-container { max-width: 450px; margin: 0 auto 20px; padding: 0 20px; }
+#searchInput { width: 100%; padding: 12px 20px; border-radius: 25px; border: 2px solid var(--lilac-soft); background: #fdfdff; font-family: var(--font-main); font-size: 14px; outline: none; transition: 0.3s; box-sizing: border-box; }
+#searchInput:focus { border-color: var(--lilac); box-shadow: 0 0 8px rgba(142, 130, 189, 0.2); }
 
-.detail-section { 
-    margin-bottom: 25px; 
-    padding-bottom: 15px; 
-    border-bottom: 1px solid #f5f5f7; 
-}
+/* 토글 필터 */
+.filters { display: flex; justify-content: center; margin-bottom: 10px; }
+.toggle-container { position: relative; display: flex; background: #eeeef5; border-radius: 30px; padding: 4px; width: 180px; height: 40px; }
+.toggle-btn { flex: 1; border: none; background: none; z-index: 2; cursor: pointer; font-weight: 700; color: #999; font-size: 14px; }
+.toggle-btn.active { color: white; }
+.toggle-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--lilac); border-radius: 25px; transition: 0.3s; z-index: 1; }
+.toggle-container:has(.toggle-btn[data-status="마감"].active) .toggle-slider { transform: translateX(100%); }
 
-.detail-section strong { 
-    display: block; 
-    margin-bottom: 10px; 
-    color: var(--lilac-dark); 
-    font-size: 14px;
-}
+/* 카드 리스트 (확대됨) */
+#policyList { padding: 20px; max-width: 650px; margin: 0 auto; }
+.card { background: white; border-radius: 20px; padding: 26px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #f0f0f5; transition: 0.2s; }
+.card:active { transform: scale(0.98); }
+.card h3 { margin: 0 0 12px 0; font-size: 19px; font-weight: 700; line-height: 1.4; color: #222; }
+.card p { margin: 4px 0; font-size: 15px; color: #666; }
 
-.apply-btn { 
-    display: block; 
-    background: var(--lilac); 
-    color: white; 
-    text-align: center; 
-    padding: 18px; 
-    border-radius: 15px; 
-    text-decoration: none; 
-    font-weight: 700; 
-    margin-top: 20px;
-    box-shadow: 0 8px 15px rgba(142, 130, 189, 0.3);
-}
+/* 상세 모달 */
+.detail { position: fixed; inset: 0; background: white; padding: 40px 25px; z-index: 3000; overflow-y: auto; }
+#backBtn { background: none; border: none; font-size: 16px; color: var(--lilac); font-weight: 700; cursor: pointer; margin-bottom: 30px; }
+.detail-section { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #f5f5f7; }
+.detail-section strong { display: block; margin-bottom: 8px; color: var(--lilac-dark); }
+.apply-btn { display: block; background: var(--lilac); color: white; text-align: center; padding: 18px; border-radius: 15px; text-decoration: none; font-weight: 700; margin-top: 40px; }
