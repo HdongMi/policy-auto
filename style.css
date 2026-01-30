@@ -4,46 +4,44 @@
     --lilac: #8e82bd;
     --lilac-soft: #f4f2ff;
     --lilac-dark: #6a5da1;
-    --lilac-bg: #f7f6ff;
+    --lilac-bg: #f7f6ff; /* 이 보라색 배경이 확실히 보이게 처리 */
     --font-main: 'Pretendard', sans-serif;
 }
 
+/* 전체 배경 고정 */
 body { 
     font-family: var(--font-main); 
     margin: 0; 
-    background: var(--lilac-bg); 
+    background-color: var(--lilac-bg) !important; 
     color: #333; 
-    word-break: keep-all; 
+    word-break: keep-all;
+    min-height: 100vh;
 }
 
 .hidden { display: none !important; }
 
-/* [스플래시 화면 원상복구] */
+/* [스플래시 화면] - 흰색 배경 유지 */
 .landing { 
     position: fixed; inset: 0; background: white; 
     display: flex; align-items: center; justify-content: center; 
     text-align: center; z-index: 2000; 
 }
 .landing h1 { font-size: 28px; color: var(--lilac-dark); margin-bottom: 15px; }
-.subtitle { color: #777; line-height: 1.5; margin-bottom: 30px; }
-.start-btn { padding: 18px 50px; background: var(--lilac); color: white; border: none; border-radius: 35px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(142, 130, 189, 0.2); }
+.start-btn { padding: 18px 50px; background: var(--lilac); color: white; border: none; border-radius: 35px; font-size: 18px; font-weight: 700; cursor: pointer; }
 
 /* [메인 레이아웃 중앙 정렬] */
 #mainLayout {
     width: 100%;
     max-width: 600px;
     margin: 0 auto;
+    background-color: var(--lilac-bg); /* 배경색 강제 적용 */
     min-height: 100vh;
-    background: var(--lilac-bg);
-    display: flex;
-    flex-direction: column;
 }
 
 .header { 
     background: white; padding: 40px 20px 30px; 
     text-align: center; border-bottom: 1px solid #f0f0f5; 
 }
-.header h1 { font-size: 24px; color: var(--lilac-dark); margin-bottom: 25px; }
 
 .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
 .tab-btn { padding: 12px 20px; border-radius: 14px; border: 1px solid #e0e0e5; text-decoration: none; color: #888; font-size: 14px; font-weight: 600; }
@@ -54,27 +52,37 @@ body {
 
 .filters { display: flex; justify-content: center; padding-bottom: 10px; }
 .toggle-container { position: relative; display: flex; background: #eeeef5; border-radius: 30px; padding: 4px; width: 180px; height: 42px; }
+.toggle-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--lilac); border-radius: 25px; transition: 0.3s; z-index: 1; }
 .toggle-btn { flex: 1; border: none; background: none; z-index: 2; cursor: pointer; font-weight: 700; color: #999; }
 .toggle-btn.active { color: white; }
-.toggle-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--lilac); border-radius: 25px; transition: 0.3s; z-index: 1; }
 
-#policyList { width: 100%; box-sizing: border-box; padding: 20px; }
-.card { background: white; border-radius: 22px; padding: 25px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid rgba(142, 130, 189, 0.1); }
+/* 리스트 카드 */
+#policyList { padding: 20px; }
+.card { background: white; border-radius: 22px; padding: 25px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid rgba(142, 130, 189, 0.1); text-align: center; }
 .card h3 { margin: 0 0 10px 0; font-size: 18px; color: #222; }
-.card p { margin: 0; color: #777; font-size: 14px; }
 
-/* [상세페이지] */
+/* [상세페이지 중앙 정렬 수정] */
 .detail { 
-    position: fixed; inset: 0; background: white; 
-    padding: 60px 25px; z-index: 3000; overflow-y: auto; 
+    position: fixed; inset: 0; background-color: var(--lilac-bg); 
+    padding: 60px 20px; z-index: 3000; overflow-y: auto; 
+    display: flex; flex-direction: column; align-items: center; /* 자식 요소들 중앙으로 */
 }
-.detail-header h2 { font-size: 22px; margin-bottom: 40px; line-height: 1.5; color: #222; text-align: center; }
-.detail-section { margin-bottom: 25px; border-bottom: 1px solid #f0f0f5; padding-bottom: 15px; }
+
+.detail-header { width: 100%; max-width: 500px; text-align: center; margin-bottom: 40px; }
+.detail-header h2 { font-size: 22px; line-height: 1.5; color: #222; margin: 0; }
+
+.detail-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 20px; }
+
+/* 상세 항목들 중앙 정렬 */
+.detail-section { 
+    background: white; padding: 20px; border-radius: 15px; 
+    text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+}
 .detail-section strong { color: var(--lilac-dark); font-size: 14px; margin-bottom: 8px; display: block; }
-.detail-section p { font-size: 16px; color: #444; margin: 0; }
+.detail-section p { font-size: 16px; color: #444; margin: 0; font-weight: 500; }
 
 .apply-btn { 
-    display: block; background: var(--lilac); color: white !important; 
+    width: 100%; max-width: 500px; background: var(--lilac); color: white !important; 
     text-align: center; padding: 20px; border-radius: 18px; 
-    text-decoration: none; font-weight: 700; margin-top: 50px; 
+    text-decoration: none; font-weight: 700; margin-top: 20px; box-shadow: 0 8px 15px rgba(142, 130, 189, 0.3);
 }
