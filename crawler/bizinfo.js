@@ -10,7 +10,7 @@ async function run() {
   const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=${START_DATE}`;
 
   try {
-    console.log(`📡 링크 정밀 복구 및 수집 시작...`);
+    console.log(`📡 기업마당 데이터 수집 및 네이버 검색 링크 생성 중...`);
     const response = await fetch(URL);
     const text = await response.text();
 
@@ -23,44 +23,26 @@ async function run() {
 
     const newPolicies = itemsArray.map(item => {
       const getV = (v) => (Array.isArray(v) ? v[0] : (typeof v === 'object' ? v._ : v)) || "";
+      const title = getV(item.title || item.pblancNm).trim();
       
-      const title = getV(item.title).trim();
-      
-      // 🔗 [핵심] 링크 복구 로직
-      // 1. API에서 주는 pblancUrl을 우선 확인
-      let rawUrl = getV(item.pblancUrl); 
-      let finalLink = "";
-
-      if (rawUrl && rawUrl.length > 10 && !rawUrl.includes("null")) {
-        // 상대 경로일 경우 절대 경로로 보정
-        if (rawUrl.startsWith("/")) {
-          finalLink = `https://www.bizinfo.go.kr${rawUrl}`;
-        } else if (!rawUrl.startsWith("http")) {
-          finalLink = `https://${rawUrl}`;
-        } else {
-          finalLink = rawUrl;
-        }
-      } else {
-        // 2. 만약 pblancUrl이 없다면, pblancId를 활용하되 
-        // 기업마당에서 '에러'가 나지 않는 최신 상세페이지 주소 체계를 강제로 적용합니다.
-        const pId = getV(item.pblancId) || getV(item.itemId);
-        finalLink = `https://www.bizinfo.go.kr/saw/saw01/saw0101.do?pblancId=${pId}`;
-      }
+      // 💡 해결책: 에러 나는 주소 대신, 네이버에서 '기업마당 + 공고명'으로 검색하도록 링크 생성
+      const naverLink = `https://search.naver.com/search.naver?query=${encodeURIComponent("기업마당 " + title)}`;
 
       return {
         title: title,
         region: getV(item.areaNm) || "전국",
         deadline: getV(item.pblancEnddt) || "상세참조",
         source: "중기부(기업마당)",
-        link: finalLink
+        link: naverLink
       };
     }).filter(p => p.title);
 
+    // 기존 데이터를 다 지우고 새 링크(네이버)로 모두 교체
     fs.writeFileSync(filePath, JSON.stringify(newPolicies, null, 2), "utf8");
-    console.log(`✅ 링크 복구 완료! 총 ${newPolicies.length}건 저장.`);
+    console.log(`✅ 링크 보정 완료! 이제 모든 공고가 네이버 검색으로 연결됩니다.`);
 
   } catch (error) {
-    console.error("❌ 오류:", error.message);
+    console.error("❌ 오류 발생:", error.message);
   }
 }
 
