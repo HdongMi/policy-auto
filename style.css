@@ -2,9 +2,9 @@
 
 :root {
     --lilac: #8e82bd;
-    --lilac-soft: #f4f2ff;
+    --lilac-soft: #eeebff;
     --lilac-dark: #6a5da1;
-    --lilac-bg: #f7f6ff; /* 이 보라색 배경이 확실히 보이게 처리 */
+    --lilac-bg: #e8e3ff; /* 배경색 농도를 더 높여 보라색을 확실히 강조 */
     --font-main: 'Pretendard', sans-serif;
 }
 
@@ -20,69 +20,76 @@ body {
 
 .hidden { display: none !important; }
 
-/* [스플래시 화면] - 흰색 배경 유지 */
+/* [스플래시 화면] - 깔끔한 흰색 유지 */
 .landing { 
     position: fixed; inset: 0; background: white; 
     display: flex; align-items: center; justify-content: center; 
     text-align: center; z-index: 2000; 
 }
 .landing h1 { font-size: 28px; color: var(--lilac-dark); margin-bottom: 15px; }
-.start-btn { padding: 18px 50px; background: var(--lilac); color: white; border: none; border-radius: 35px; font-size: 18px; font-weight: 700; cursor: pointer; }
+.start-btn { padding: 18px 50px; background: var(--lilac); color: white; border: none; border-radius: 35px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(142, 130, 189, 0.2); }
 
-/* [메인 레이아웃 중앙 정렬] */
+/* [메인 레이아웃 및 헤더] */
 #mainLayout {
     width: 100%;
     max-width: 600px;
     margin: 0 auto;
-    background-color: var(--lilac-bg); /* 배경색 강제 적용 */
+    background-color: var(--lilac-bg);
     min-height: 100vh;
 }
 
 .header { 
     background: white; padding: 40px 20px 30px; 
-    text-align: center; border-bottom: 1px solid #f0f0f5; 
+    text-align: center; border-radius: 0 0 30px 30px;
+    box-shadow: 0 4px 15px rgba(142, 130, 189, 0.1);
 }
+
+.header h1 { font-size: 24px; color: var(--lilac-dark); margin-bottom: 25px; }
 
 .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
 .tab-btn { padding: 12px 20px; border-radius: 14px; border: 1px solid #e0e0e5; text-decoration: none; color: #888; font-size: 14px; font-weight: 600; }
 .tab-btn.active { background: var(--lilac-soft); border-color: var(--lilac); color: var(--lilac); }
 
 .search-container { padding: 0 20px; margin-bottom: 20px; }
-#searchInput { width: 100%; padding: 15px 20px; border-radius: 30px; border: 2px solid var(--lilac-soft); font-size: 15px; outline: none; box-sizing: border-box; text-align: center; }
+#searchInput { width: 100%; padding: 15px 20px; border-radius: 30px; border: 2px solid var(--lilac-soft); font-size: 15px; text-align: center; box-sizing: border-box; outline: none; background: #fdfdff; }
 
-.filters { display: flex; justify-content: center; padding-bottom: 10px; }
+.filters { display: flex; justify-content: center; margin-top: 20px; }
 .toggle-container { position: relative; display: flex; background: #eeeef5; border-radius: 30px; padding: 4px; width: 180px; height: 42px; }
 .toggle-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--lilac); border-radius: 25px; transition: 0.3s; z-index: 1; }
-.toggle-btn { flex: 1; border: none; background: none; z-index: 2; cursor: pointer; font-weight: 700; color: #999; }
+.toggle-btn { flex: 1; border: none; background: none; z-index: 2; cursor: pointer; font-weight: 700; color: #999; font-size: 14px; }
 .toggle-btn.active { color: white; }
 
-/* 리스트 카드 */
+/* 리스트 카드 중앙 정렬 */
 #policyList { padding: 20px; }
-.card { background: white; border-radius: 22px; padding: 25px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid rgba(142, 130, 189, 0.1); text-align: center; }
-.card h3 { margin: 0 0 10px 0; font-size: 18px; color: #222; }
+.card { background: white; border-radius: 22px; padding: 25px; margin-bottom: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid rgba(142, 130, 189, 0.1); cursor: pointer; }
+.card h3 { margin: 0 0 10px 0; font-size: 18px; color: #222; font-weight: 700; }
+.card p { color: #777; font-size: 14px; margin: 0; }
 
-/* [상세페이지 중앙 정렬 수정] */
+/* [상세페이지 완전 중앙 정렬] */
 .detail { 
-    position: fixed; inset: 0; background-color: var(--lilac-bg); 
+    position: fixed; inset: 0; 
+    background-color: var(--lilac-bg) !important; 
     padding: 60px 20px; z-index: 3000; overflow-y: auto; 
-    display: flex; flex-direction: column; align-items: center; /* 자식 요소들 중앙으로 */
+    display: flex; flex-direction: column; align-items: center; 
 }
 
-.detail-header { width: 100%; max-width: 500px; text-align: center; margin-bottom: 40px; }
-.detail-header h2 { font-size: 22px; line-height: 1.5; color: #222; margin: 0; }
+.detail-header { width: 100%; max-width: 500px; text-align: center; margin-bottom: 30px; }
+.detail-header h2 { font-size: 24px; line-height: 1.4; color: #222; word-break: keep-all; margin: 0; font-weight: 800; }
 
-.detail-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 20px; }
+.detail-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
 
-/* 상세 항목들 중앙 정렬 */
+/* 상세 항목 박스 중앙 정렬 */
 .detail-section { 
-    background: white; padding: 20px; border-radius: 15px; 
-    text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    width: 100%; background: white; padding: 22px; border-radius: 20px; 
+    text-align: center; /* 텍스트 정중앙 */
+    box-sizing: border-box; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
-.detail-section strong { color: var(--lilac-dark); font-size: 14px; margin-bottom: 8px; display: block; }
-.detail-section p { font-size: 16px; color: #444; margin: 0; font-weight: 500; }
+.detail-section strong { color: var(--lilac-dark); font-size: 14px; margin-bottom: 10px; display: block; letter-spacing: -0.5px; }
+.detail-section p { font-size: 18px; color: #333; margin: 0; font-weight: 700; }
 
 .apply-btn { 
     width: 100%; max-width: 500px; background: var(--lilac); color: white !important; 
-    text-align: center; padding: 20px; border-radius: 18px; 
-    text-decoration: none; font-weight: 700; margin-top: 20px; box-shadow: 0 8px 15px rgba(142, 130, 189, 0.3);
+    text-align: center; padding: 20px; border-radius: 20px; 
+    text-decoration: none; font-weight: 700; font-size: 18px; margin-top: 25px; 
+    box-shadow: 0 10px 20px rgba(142, 130, 189, 0.3);
 }
