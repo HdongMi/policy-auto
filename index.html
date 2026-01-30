@@ -11,14 +11,20 @@
   <div id="landingPage" class="landing">
     <div class="landing-content">
       <h1>소상공인 정책 알리미</h1>
-      <p>나에게 꼭 맞는 정책 정보를<br>한곳에서 확인하세요.</p>
-      <button id="startBtn" class="start-btn">정책 확인하기</button>
+      <p class="subtitle">나에게 딱 맞는 지원사업과<br>혜택 정보를 한곳에서 확인하세요.</p>
+      <button id="startBtn" class="start-btn">정책 둘러보기</button>
     </div>
   </div>
 
   <div id="mainLayout" class="hidden">
     <header class="header">
       <h1>소상공인 정책 알리미</h1>
+      
+      <nav class="nav-tabs">
+        <a href="info.html" class="tab-btn">💡 지원자격 안내</a>
+        <a href="index.html" class="tab-btn active">📋 공고 목록</a>
+      </nav>
+
       <div class="filters">
         <div class="toggle-container">
           <button class="toggle-btn active" data-status="전체">접수중</button>
@@ -27,18 +33,21 @@
         </div>
       </div>
     </header>
+
     <main id="policyList"></main>
   </div>
 
   <div id="detailView" class="detail hidden">
     <button id="backBtn">← 뒤로가기</button>
-    <h2 id="detailTitle"></h2>
-    <div class="detail-info">
-        <p><strong>📍 지역:</strong> <span id="detailTarget"></span></p>
-        <p><strong>📅 기간:</strong> <span id="detailDeadline"></span></p>
-        <p><strong>🏛️ 출처:</strong> <span id="detailSource"></span></p>
+    <div class="detail-header">
+      <h2 id="detailTitle"></h2>
     </div>
-    <a id="detailLink" class="apply-link" target="_blank">공식 공고 페이지로 이동</a>
+    <div class="detail-container">
+        <div class="detail-section"><strong>📍 대상/지역</strong><p id="detailTarget"></p></div>
+        <div class="detail-section"><strong>📅 신청기간</strong><p id="detailDeadline"></p></div>
+        <div class="detail-section"><strong>🏛️ 출처</strong><p id="detailSource"></p></div>
+    </div>
+    <a id="detailLink" class="apply-btn" target="_blank">공식 공고 페이지로 이동</a>
   </div>
 
   <script src="app.js"></script>
