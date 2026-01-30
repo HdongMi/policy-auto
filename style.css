@@ -1,20 +1,148 @@
-body { font-family: sans-serif; margin: 0; background: #f4f7f6; }
+:root {
+    --bg: #f8f9fd;
+    --lilac-main: #dcd7ff;
+    --lilac-accent: #8e82bd;
+    --lilac-dark: #6a5da1;
+    --white: #ffffff;
+    --text-dark: #33394d;
+    --text-gray: #7d8592;
+    --green: #2a9d8f; /* 접수중 포인트 */
+    --red: #e63946;   /* 마감 포인트 */
+}
+
+body {
+    font-family: 'Pretendard', sans-serif;
+    background-color: var(--bg);
+    margin: 0; color: var(--text-dark);
+    line-height: 1.6;
+}
+
 .hidden { display: none !important; }
 
-/* 카드 스타일 */
-.card { 
-    background: #fff; margin: 15px auto; padding: 20px; width: 90%; max-width: 500px;
-    border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; 
+/* 헤더 영역 */
+.header {
+    background: #fff;
+    padding: 40px 20px 25px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
 }
-.card:hover { border: 1px solid #007bff; }
 
-/* 필터 버튼 */
-.status-buttons button { padding: 10px 20px; cursor: pointer; border: 1px solid #ccc; background: #fff; }
-.status-buttons button.active { background: #007bff; color: #fff; border-color: #007bff; }
-
-/* 상세 모달 */
-.detail { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: #fff; padding: 20px; box-sizing: border-box; z-index: 1000;
+.header h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--lilac-dark);
+    margin-bottom: 20px;
 }
-#backBtn { padding: 10px; margin-bottom: 20px; cursor: pointer; }
+
+/* 탭 버튼 */
+.nav-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    padding: 8px 18px;
+    border-radius: 10px;
+    border: 1px solid var(--lilac-main);
+    text-decoration: none;
+    color: var(--lilac-accent);
+    font-weight: 600;
+    font-size: 13px;
+    transition: 0.2s;
+}
+
+.tab-btn.active {
+    background: var(--lilac-soft);
+    border-color: var(--lilac-accent);
+}
+
+/* ✨ 세련된 토글 필터 */
+.filters {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.toggle-container {
+    position: relative;
+    display: flex;
+    background: #eeeef5;
+    border-radius: 30px;
+    padding: 4px;
+    width: 160px;
+    height: 38px;
+}
+
+.toggle-btn {
+    flex: 1;
+    border: none;
+    background: none;
+    z-index: 2;
+    cursor: pointer;
+    font-weight: 700;
+    color: #999;
+    font-size: 13px;
+    transition: 0.3s;
+}
+
+.toggle-btn.active { color: #fff; }
+
+.toggle-slider {
+    position: absolute;
+    top: 4px; left: 4px;
+    width: calc(50% - 4px);
+    height: calc(100% - 8px);
+    background: var(--lilac-accent);
+    border-radius: 25px;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1;
+    box-shadow: 0 2px 6px rgba(142, 130, 189, 0.3);
+}
+
+/* 필터 상태에 따른 슬라이더 이동 */
+.toggle-container:has(.toggle-btn[data-status="마감"].active) .toggle-slider {
+    transform: translateX(100%);
+}
+
+/* 카드 디자인 */
+#policyList { padding: 20px; max-width: 500px; margin: 0 auto; }
+
+.card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 8px 20px rgba(180, 160, 220, 0.08);
+    border: 1px solid #f0edff;
+    transition: transform 0.2s;
+}
+
+.card:active { transform: scale(0.98); }
+
+.card h3 {
+    font-size: 16px;
+    margin: 0 0 10px 0;
+    color: var(--text-dark);
+    word-break: keep-all;
+}
+
+/* 상세 보기 모달 스타일 */
+.detail {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #fff; z-index: 1000; overflow-y: auto;
+    padding: 30px 20px; box-sizing: border-box;
+}
+
+#backBtn {
+    background: none; border: none; color: var(--lilac-accent);
+    font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 20px;
+}
+
+.apply-btn {
+    display: block; width: 100%; padding: 16px;
+    background: var(--lilac-accent); color: #fff;
+    text-align: center; border-radius: 12px;
+    text-decoration: none; font-weight: bold; margin-top: 30px;
+}
