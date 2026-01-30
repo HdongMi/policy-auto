@@ -30,14 +30,27 @@
 
       <div class="filters">
         <div class="toggle-container">
-          <button class="toggle-btn active" data-status="전체">접수중</button>
-          <button class="toggle-btn" data-status="마감">마감</button>
+          <button class="toggle-btn active">접수중</button>
+          <button class="toggle-btn">마감</button>
           <div class="toggle-slider"></div>
         </div>
       </div>
     </header>
 
     <main id="policyList"></main>
+  </div>
+
+  <div id="detailView" class="detail hidden">
+    <button id="backBtn">← 뒤로가기</button>
+    <div class="detail-header">
+      <h2 id="detailTitle">정책 제목</h2>
+    </div>
+    <div class="detail-container">
+      <div class="detail-section"><strong>📍 지원지역</strong><p id="detailTarget">-</p></div>
+      <div class="detail-section"><strong>📅 마감기한</strong><p id="detailDeadline">-</p></div>
+      <div class="detail-section"><strong>🏢 공고처</strong><p id="detailSource">-</p></div>
+      <a id="detailLink" href="#" target="_blank" class="apply-btn">공고 원문 확인하기</a>
+    </div>
   </div>
 
   <script src="app.js"></script>
