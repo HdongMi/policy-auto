@@ -1,58 +1,155 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>소상공인 정책 알리미</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
+let policies = [];
+let currentStatus = "접수중"; // HTML 초기 활성 버튼이 '접수중'이므로 맞춤
+let searchQuery = "";
 
-  <div id="landingPage" class="landing">
-    <div class="landing-content">
-      <h1>소상공인 정책 알리미</h1>
-      <p class="subtitle">나에게 딱 맞는 지원사업과<br>혜택 정보를 한곳에서 확인하세요.</p>
-      <button id="startBtn" class="start-btn">정책 둘러보기</button>
-    </div>
-  </div>
+const landingPage = document.getElementById('landingPage');
+const mainLayout = document.getElementById('mainLayout');
+const startBtn = document.getElementById('startBtn');
+const listEl = document.getElementById('policyList');
+const toggleButtons = document.querySelectorAll('.toggle-btn'); // toggle-btn으로 변경
+const detailView = document.getElementById('detailView');
+const searchInput = document.getElementById('searchInput');
 
-  <div id="mainLayout" class="hidden">
-    <header class="header">
-      <h1>소상공인 정책 알리미</h1>
-      <nav class="nav-tabs">
-        <a href="info.html" class="tab-btn">💡 지원자격 안내</a>
-        <a href="index.html" class="tab-btn active">📋 공고 목록</a>
-      </nav>
-      
-      <div class="search-container">
-        <input type="text" id="searchInput" placeholder="정책명이나 지역을 검색해보세요" />
-      </div>
+// 1. 초기화 및 뒤로가기 감지
+function init() {
+    const isVisited = sessionStorage.getItem('visited');
+    if (isVisited === 'true') {
+        landingPage.classList.add('hidden');
+        mainLayout.classList.remove('hidden');
+        fetchData();
+    }
+}
 
-      <div class="filters">
-        <div class="toggle-container">
-          <button class="toggle-btn active" data-status="전체">접수중</button>
-          <button class="toggle-btn" data-status="마감">마감</button>
-          <div class="toggle-slider"></div>
-        </div>
-      </div>
-    </header>
+window.onpopstate = (event) => {
+    if (event.state && event.state.view === 'detail') {
+        showDetailUI(event.state.policy);
+    } else {
+        closeDetailUI();
+    }
+};
 
-    <main id="policyList"></main>
-  </div>
+startBtn.onclick = () => {
+    sessionStorage.setItem('visited', 'true');
+    landingPage.classList.add('hidden');
+    mainLayout.classList.remove('hidden');
+    fetchData();
+};
 
-  <div id="detailView" class="detail hidden">
-    <button id="backBtn">← 뒤로가기</button>
-    <div class="detail-header">
-      <h2 id="detailTitle" style="margin-top:20px;"></h2>
-    </div>
-    <div class="detail-container">
-        <div class="detail-section"><strong>📍 대상/지역</strong><p id="detailTarget"></p></div>
-        <div class="detail-section"><strong>📅 신청기간</strong><p id="detailDeadline"></p></div>
-        <div class="detail-section"><strong>🏛️ 출처</strong><p id="detailSource"></p></div>
-    </div>
-    <a id="detailLink" class="apply-btn" target="_blank" rel="noopener noreferrer">공식 공고 페이지로 이동</a>
-  </div>
+// 2. 데이터 가져오기
+function fetchData() {
+    listEl.innerHTML = "<div class='loading-msg'>최신 공고 동기화 중...</div>";
+    const cacheBuster = new Date().getTime();
+    fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${cacheBuster}`)
+        .then(res => res.json())
+        .then(data => {
+            policies = [...data];
+            render();
+        })
+        .catch(err => {
+            listEl.innerHTML = "<div class='error-msg'>데이터를 불러오는 데 실패했습니다.</div>";
+        });
+}
 
-  <script src="app.js"></script>
-</body>
-</html>
+// 3. 상세 페이지 로직 (URL 변경 포함)
+function openDetail(p) {
+    const urlSafeTitle = encodeURIComponent(p.title.substring(0, 10));
+    history.pushState({ view: 'detail', policy: p }, p.title, `?policy=${urlSafeTitle}`);
+    showDetailUI(p);
+}
+
+function showDetailUI(p) {
+    document.getElementById("detailTitle").innerText = p.title;
+    document.getElementById("detailTarget").innerText = p.region;
+    document.getElementById("detailDeadline").innerText = p.deadline;
+    document.getElementById("detailSource").innerText = p.source;
+
+    const oldBtn = document.getElementById("detailLink");
+    const newBtn = oldBtn.cloneNode(true);
+    newBtn.href = p.link;
+    newBtn.target = "_blank";
+    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+
+    mainLayout.classList.add("hidden");
+    detailView.classList.remove("hidden");
+    window.scrollTo(0, 0);
+}
+
+function closeDetailUI() {
+    detailView.classList.add("hidden");
+    mainLayout.classList.remove("hidden");
+}
+
+// 4. 날짜 파싱 및 마감 로직 (오늘 날짜 기준 2026-01-30)
+function parseDate(str) {
+    if (!str || str.includes("상세참조") || str.includes("소진시") || str.includes("상시")) {
+        return new Date("2099-12-31"); 
+    }
+    let datePart = str;
+    if (str.includes('~')) {
+        const parts = str.split('~');
+        datePart = parts[1].trim() || parts[0].trim();
+    }
+    const cleanStr = datePart.replace(/[^0-9]/g, '');
+    if (cleanStr.length >= 8) {
+        return new Date(`${cleanStr.substr(0,4)}-${cleanStr.substr(4,2)}-${cleanStr.substr(6,2)}`);
+    }
+    return null;
+}
+
+// 5. 렌더링 (필터 적용)
+function render() {
+    listEl.innerHTML = "";
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const filtered = policies.filter(p => {
+        // A. 마감 여부 계산
+        const deadlineDate = parseDate(p.deadline);
+        const isClosed = deadlineDate ? deadlineDate < today : false;
+
+        // B. 토글 상태 필터 (접수중 / 마감)
+        let statusMatch = (currentStatus === "접수중") ? !isClosed : isClosed;
+
+        // C. 검색어 필터
+        const searchMatch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          p.region.toLowerCase().includes(searchQuery.toLowerCase());
+
+        return statusMatch && searchMatch;
+    });
+
+    if (filtered.length === 0) {
+        listEl.innerHTML = `<div class='empty-msg'>${currentStatus}인 공고가 없습니다.</div>`;
+        return;
+    }
+
+    filtered.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<h3>${p.title}</h3><p>${p.region} | ${p.deadline}</p>`;
+        card.onclick = () => openDetail(p);
+        listEl.appendChild(card);
+    });
+}
+
+// 6. 이벤트 리스너
+if (searchInput) {
+    searchInput.oninput = (e) => {
+        searchQuery = e.target.value;
+        render();
+    };
+}
+
+toggleButtons.forEach(btn => {
+    btn.onclick = () => {
+        toggleButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentStatus = btn.innerText.trim(); // 버튼 안의 텍스트(접수중/마감)를 상태로 사용
+        render();
+    };
+});
+
+document.getElementById("backBtn").onclick = () => {
+    history.back();
+};
+
+init();
