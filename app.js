@@ -14,7 +14,7 @@ function showMainLayout() {
     document.getElementById('landingPage')?.classList.add('hidden');
     document.getElementById('mainLayout')?.classList.remove('hidden');
     document.getElementById('detailView')?.classList.add('hidden');
-    document.body.style.backgroundColor = "var(--lilac-bg)"; // 배경색 강제 적용
+    document.body.style.backgroundColor = "var(--lilac-bg)";
 }
 
 async function fetchData() {
@@ -23,7 +23,7 @@ async function fetchData() {
         policies = await res.json();
         render();
     } catch (err) {
-        console.error(err);
+        console.error("Data fetch failed");
     }
 }
 
@@ -55,10 +55,7 @@ function showDetailUI(p) {
 
 window.onpopstate = (e) => {
     if (e.state && e.state.view === 'detail') showDetailUI(e.state.policy);
-    else {
-        document.getElementById('detailView')?.classList.add('hidden');
-        document.getElementById('mainLayout')?.classList.remove('hidden');
-    }
+    else showMainLayout();
 };
 
 function render() {
