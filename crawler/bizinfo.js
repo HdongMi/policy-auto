@@ -11,7 +11,7 @@ async function run() {
   const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=${START_DATE}`;
 
   try {
-    console.log(`📡 중기부 사업공고 게시판 직결 모드 시작...`);
+    console.log(`📡 중기부 상세 페이지 번호(bcIdx) 추적 수집 시작...`);
     const response = await fetch(URL);
     const text = await response.text();
 
@@ -22,27 +22,42 @@ async function run() {
       itemsArray = Array.isArray(items) ? items : (items ? [items] : []);
     }
 
-    const newPolicies = itemsArray.map(item => {
+    const newPolicies = [];
+
+    for (const item of itemsArray) {
       const getV = (v) => (Array.isArray(v) ? v[0] : (typeof v === 'object' ? v._ : v)) || "";
       const title = getV(item.title || item.pblancNm).trim();
       
-      /**
-       * 💡 중기부 사업공고 게시판(cbIdx=310) 검색 파라미터
-       * 이 주소는 중기부 메인으로 튕기지 않고, 게시판 내부 검색 결과를 바로 보여줍니다.
-       */
-      const mssBoardLink = `https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310&searchTarget=ALL&searchLowTarget=ALL&searchKeyword=${encodeURIComponent(title)}`;
+      // 기본값은 게시판 검색 링크로 설정 (혹시 상세번호를 못 찾을 경우 대비)
+      let finalLink = `https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310&searchTarget=ALL&searchKeyword=${encodeURIComponent(title)}`;
 
-      return {
+      try {
+        // 🔍 중기부 게시판에 실제로 물어봐서 게시물 번호(bcIdx) 가져오기
+        const searchRes = await fetch(finalLink);
+        const html = await searchRes.text();
+        
+        // HTML 소스 내에서 View.do?cbIdx=310&bcIdx=숫자 패턴을 찾아냄
+        const match = html.match(/bcIdx=(\d+)/);
+        if (match && match[1]) {
+          const bcIdx = match[1];
+          finalLink = `https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=${bcIdx}`;
+          console.log(`✅ 찾았다! [${bcIdx}] : ${title}`);
+        }
+      } catch (e) {
+        console.log(`⚠️ 상세번호 추출 실패, 검색 링크 유지: ${title}`);
+      }
+
+      newPolicies.push({
         title: title,
         region: getV(item.areaNm) || "전국",
         deadline: getV(item.pblancEnddt) || "상세참조",
         source: "중소벤처기업부",
-        link: mssBoardLink
-      };
-    }).filter(p => p.title);
+        link: finalLink
+      });
+    }
 
     fs.writeFileSync(filePath, JSON.stringify(newPolicies, null, 2), "utf8");
-    console.log(`✅ 중기부 게시판 직결 링크로 업데이트 완료!`);
+    console.log(`✅ 총 ${newPolicies.length}건, 상세 페이지 직결 업데이트 완료!`);
 
   } catch (error) {
     console.error("❌ 오류 발생:", error.message);
