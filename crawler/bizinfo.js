@@ -7,10 +7,11 @@ async function run() {
   const SERVICE_KEY = "e8e40ea23b405a5abba75382a331e61f9052570e9e95a7ca6cf5db14818ba22b";
   const filePath = path.join(process.cwd(), "policies.json");
   const START_DATE = "20250101";
+  
   const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=${START_DATE}`;
 
   try {
-    console.log(`📡 기업마당 데이터 수집 및 검색 링크 최적화 중...`);
+    console.log(`📡 기업마당 데이터 수집 및 링크 안정화 작업 중...`);
     const response = await fetch(URL);
     const text = await response.text();
 
@@ -30,23 +31,32 @@ async function run() {
       const getV = (v) => (Array.isArray(v) ? v[0] : (typeof v === 'object' ? v._ : v)) || "";
       
       const title = getV(item.title || item.pblancNm).trim();
+      const apiLink = getV(item.pblancUrl); // API가 주는 원본 링크
       
-      // 💡 핵심 수정: 에러 나는 pblancId 대신 '검색어' 기반 링크 생성
-      // 이 링크는 기업마당에서 해당 제목을 자동으로 검색해주므로 100% 정상 작동합니다.
-      const searchLink = `https://www.bizinfo.go.kr/saw/saw01/saw0101.do?searchCondition=all&searchKeyword=${encodeURIComponent(title)}`;
+      let finalLink = "";
+
+      // 💡 에러 방지 핵심 로직
+      // 1. API에서 준 링크가 제대로 된 주소(http 포함)인 경우만 사용
+      if (apiLink && apiLink.includes("http")) {
+        finalLink = apiLink;
+      } else {
+        // 2. 링크가 없거나 깨진 경우, "페이지 없음" 에러 대신 기업마당 공고 목록 메인으로 보냅니다.
+        // 여기서 사용자가 직접 제목으로 검색하는 것이 에러 페이지를 보는 것보다 훨씬 낫습니다.
+        finalLink = `https://www.bizinfo.go.kr/saw/saw01/saw0101.do`;
+      }
 
       return {
         title: title,
         region: getV(item.areaNm) || "전국",
         deadline: getV(item.pblancEnddt) || "상세참조",
         source: "중기부(기업마당)",
-        link: searchLink // 🔗 '페이지 없음' 에러 방지를 위한 검색 링크
+        link: finalLink
       };
     }).filter(p => p.title);
 
-    // 중복 제거 없이 이번에 새로 긁어온 최신 데이터로 교체 (잘못된 링크 제거를 위함)
+    // 중복 제거 없이 최신 데이터로 덮어쓰기 (잘못된 데이터 청소)
     fs.writeFileSync(filePath, JSON.stringify(newPolicies, null, 2), "utf8");
-    console.log(`✅ 링크 보정 완료! 총 ${newPolicies.length}건 저장.`);
+    console.log(`✅ 링크 안정화 완료! 총 ${newPolicies.length}건 저장.`);
 
   } catch (error) {
     console.error("❌ 오류 발생:", error.message);
