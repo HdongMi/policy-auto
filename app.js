@@ -1,7 +1,8 @@
 let policies = [];
-let currentStatus = "접수중";
+let currentStatus = "접수중"; 
 let searchQuery = "";
 
+// HTML 요소 연결
 const landingPage = document.getElementById('landingPage');
 const mainLayout = document.getElementById('mainLayout');
 const startBtn = document.getElementById('startBtn');
@@ -10,33 +11,22 @@ const toggleButtons = document.querySelectorAll('.toggle-btn');
 const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
 
-// 1. 초기화 (sessionStorage 확인)
+// 1. 초기화 (URL에 policy 파라미터가 있으면 바로 상세페이지 노출)
 function init() {
-    const isVisited = sessionStorage.getItem('visited');
-    if (isVisited === 'true') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const policyTitle = urlParams.get('policy');
+
+    // 일단 데이터부터 불러오기
+    fetchData();
+
+    // 방문 기록이 있으면 랜딩페이지 건너뛰기
+    if (sessionStorage.getItem('visited') === 'true') {
         landingPage.classList.add('hidden');
         mainLayout.classList.remove('hidden');
-        fetchData();
     }
 }
 
-// 브라우저 뒤로가기 대응 (SPA)
-window.onpopstate = (event) => {
-    if (event.state && event.state.view === 'detail') {
-        showDetailUI(event.state.policy);
-    } else {
-        closeDetailUI();
-    }
-};
-
-startBtn.onclick = () => {
-    sessionStorage.setItem('visited', 'true');
-    landingPage.classList.add('hidden');
-    mainLayout.classList.remove('hidden');
-    fetchData();
-};
-
-// 2. 데이터 가져오기
+// 2. 데이터 가져오기 (GitHub Pages 주소 활용)
 function fetchData() {
     listEl.innerHTML = "<div style='padding:40px; text-align:center;'>데이터 로딩 중...</div>";
     const cacheBuster = new Date().getTime();
@@ -52,14 +42,17 @@ function fetchData() {
         });
 }
 
-// 3. 상세 페이지 로직
+// 3. 화면 전환 로직 (상세보기)
 function openDetail(p) {
+    // 1. 주소창 변경 (SPA 방식)
     const urlSafeTitle = encodeURIComponent(p.title.substring(0, 10));
     history.pushState({ view: 'detail', policy: p }, p.title, `?policy=${urlSafeTitle}`);
+    
     showDetailUI(p);
 }
 
 function showDetailUI(p) {
+    // 데이터 채우기
     document.getElementById("detailTitle").innerText = p.title;
     document.getElementById("detailTarget").innerText = p.region;
     document.getElementById("detailDeadline").innerText = p.deadline;
@@ -71,7 +64,9 @@ function showDetailUI(p) {
     newBtn.target = "_blank";
     oldBtn.parentNode.replaceChild(newBtn, oldBtn);
 
+    // 화면 전환 (메인은 숨기고 상세만 보이기)
     mainLayout.classList.add("hidden");
+    landingPage.classList.add("hidden");
     detailView.classList.remove("hidden");
     window.scrollTo(0, 0);
 }
@@ -81,15 +76,24 @@ function closeDetailUI() {
     mainLayout.classList.remove("hidden");
 }
 
+// 브라우저 뒤로가기 버튼 대응 (핵심)
+window.onpopstate = (event) => {
+    if (event.state && event.state.view === 'detail') {
+        showDetailUI(event.state.policy);
+    } else {
+        closeDetailUI();
+    }
+};
+
 // 4. 날짜 파싱 (마감 여부 판단)
 function parseDate(str) {
     if (!str || str.includes("상세참조") || str.includes("소진시") || str.includes("상시")) {
-        return new Date("2099-12-31");
+        return new Date("2099-12-31"); 
     }
     let datePart = str;
     if (str.includes('~')) {
         const parts = str.split('~');
-        datePart = parts[1].trim() || parts[0].trim();
+        datePart = parts[1] && parts[1].trim().length > 5 ? parts[1].trim() : parts[0].trim();
     }
     const cleanStr = datePart.replace(/[^0-9]/g, '');
     if (cleanStr.length >= 8) {
@@ -98,7 +102,7 @@ function parseDate(str) {
     return null;
 }
 
-// 5. 렌더링 함수
+// 5. 공고 목록 출력
 function render() {
     listEl.innerHTML = "";
     const today = new Date();
@@ -107,53 +111,11 @@ function render() {
     const filtered = policies.filter(p => {
         const deadlineDate = parseDate(p.deadline);
         const isClosed = deadlineDate ? deadlineDate < today : false;
-
-        // 탭 필터 (접수중 / 마감)
-        let statusMatch = (currentStatus === "접수중") ? !isClosed : isClosed;
-
-        // 검색어 필터
+        const statusMatch = (currentStatus === "접수중") ? !isClosed : isClosed;
         const searchMatch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           p.region.toLowerCase().includes(searchQuery.toLowerCase());
-
         return statusMatch && searchMatch;
     });
 
     if (filtered.length === 0) {
-        listEl.innerHTML = `<div style='padding:50px; text-align:center; color:#888;'>${currentStatus} 항목이 없습니다.</div>`;
-        return;
-    }
-
-    filtered.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `
-            <h3>${p.title}</h3>
-            <p>${p.region} | ${p.deadline}</p>
-        `;
-        card.onclick = () => openDetail(p);
-        listEl.appendChild(card);
-    });
-}
-
-// 6. 이벤트 리스너
-if (searchInput) {
-    searchInput.oninput = (e) => {
-        searchQuery = e.target.value;
-        render();
-    };
-}
-
-toggleButtons.forEach(btn => {
-    btn.onclick = () => {
-        toggleButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentStatus = btn.innerText.trim();
-        render();
-    };
-});
-
-document.getElementById("backBtn").onclick = () => {
-    history.back();
-};
-
-init();
+        listEl
