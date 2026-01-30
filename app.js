@@ -14,16 +14,16 @@ function showMainLayout() {
     document.getElementById('landingPage')?.classList.add('hidden');
     document.getElementById('mainLayout')?.classList.remove('hidden');
     document.getElementById('detailView')?.classList.add('hidden');
+    document.body.style.backgroundColor = "var(--lilac-bg)"; // 배경색 강제 적용
 }
 
 async function fetchData() {
-    const listEl = document.getElementById('policyList');
     try {
         const res = await fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${new Date().getTime()}`);
         policies = await res.json();
         render();
     } catch (err) {
-        if (listEl) listEl.innerHTML = "<p style='text-align:center; padding:50px;'>데이터 로드 실패</p>";
+        console.error(err);
     }
 }
 
@@ -49,6 +49,7 @@ function showDetailUI(p) {
 
     document.getElementById('mainLayout')?.classList.add('hidden');
     document.getElementById('detailView')?.classList.remove('hidden');
+    document.body.style.backgroundColor = "var(--lilac-bg)";
     window.scrollTo(0, 0);
 }
 
