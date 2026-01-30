@@ -8,22 +8,33 @@ const listEl = document.getElementById('policyList');
 const regionFilter = document.getElementById('regionFilter');
 const statusButtons = document.querySelectorAll('.status-buttons button');
 
-// 1. 랜딩 페이지 -> 메인 이동 함수 (재사용 가능하게 분리)
-function enterMain() {
-  landingPage.classList.add('hidden');
-  mainLayout.classList.remove('hidden');
-  fetchData();
+// 1. 초기화 함수: 방문 여부 체크
+function init() {
+  const isVisited = sessionStorage.getItem('visited');
+
+  if (isVisited === 'true') {
+    // 이미 방문한 경우: 바로 메인으로
+    landingPage.classList.add('hidden');
+    mainLayout.classList.remove('hidden');
+    fetchData();
+  } else {
+    // 처음 방문인 경우: 스플래시 보여주기
+    landingPage.style.display = 'flex';
+  }
 }
 
-// 시작 버튼 클릭 시
+// 2. 시작 버튼 클릭 핸들러
 startBtn.addEventListener('click', () => {
+  sessionStorage.setItem('visited', 'true'); // 방문 기록 저장
   landingPage.style.opacity = '0';
   setTimeout(() => {
-    enterMain();
+    landingPage.classList.add('hidden');
+    mainLayout.classList.remove('hidden');
+    fetchData();
   }, 500);
 });
 
-// 2. 데이터 가져오기
+// 3. 데이터 가져오기
 function fetchData() {
   listEl.innerHTML = "<p style='text-align:center; padding:20px;'>최신 정책 공고를 불러오는 중입니다...</p>";
   const url = `https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`;
@@ -40,7 +51,7 @@ function fetchData() {
     });
 }
 
-// 3. 목록 그리기
+// 4. 목록 그리기
 function render() {
   listEl.innerHTML = "";
   const selectedRegion = regionFilter.value;
@@ -106,6 +117,7 @@ function render() {
   });
 }
 
+// 5. 상세 보기 및 필터 이벤트
 function openDetail(p) {
   document.getElementById("detailTitle").textContent = p.title;
   document.getElementById("detailTarget").textContent = p.region || "전국";
@@ -129,13 +141,5 @@ statusButtons.forEach(btn => {
   };
 });
 
-/** * 💡 핵심 해결사: URL 파라미터 체크 
- * info.html에서 ?start=true 를 달고 오면 
- * 스플래시 화면을 건너뛰고 바로 메인을 띄웁니다.
- */
-window.onload = () => {
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get('start') === 'true') {
-    enterMain();
-  }
-};
+// 페이지 로드 시 실행
+window.onload = init;
