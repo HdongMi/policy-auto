@@ -1,79 +1,20 @@
-:root {
-    --lilac-bg: #f9f8ff;
-    --lilac-soft: #eeebff;
-    --lilac-main: #dcd7ff;
-    --lilac-accent: #8e82bd;
-    --lilac-dark: #6a5da1;
-    --white: #ffffff;
-}
-
-body {
-    font-family: 'Pretendard', sans-serif;
-    background-color: var(--lilac-bg);
-    margin: 0; color: #333;
-}
-
+body { font-family: sans-serif; margin: 0; background: #f4f7f6; }
 .hidden { display: none !important; }
 
-/* 헤더 & 네비게이션 */
-.header { text-align: center; padding: 40px 20px 20px; background: #fff; }
-.header h1 { font-size: 24px; color: var(--lilac-dark); margin-bottom: 20px; }
-
-.nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; }
-.tab-btn {
-    padding: 10px 20px; border-radius: 12px; border: 1px solid var(--lilac-main);
-    text-decoration: none; color: var(--lilac-accent); font-weight: 600; font-size: 14px;
+/* 카드 스타일 */
+.card { 
+    background: #fff; margin: 15px auto; padding: 20px; width: 90%; max-width: 500px;
+    border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; 
 }
-.tab-btn.active { background: var(--lilac-soft); border-color: var(--lilac-accent); }
+.card:hover { border: 1px solid #007bff; }
 
-/* ✨ 토글 스위치 스타일 */
-.filters { display: flex; justify-content: center; padding: 10px 0; }
-.toggle-container {
-    position: relative;
-    display: flex;
-    background: #f0f0f5;
-    border-radius: 30px;
-    padding: 4px;
-    width: 180px;
-    height: 40px;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+/* 필터 버튼 */
+.status-buttons button { padding: 10px 20px; cursor: pointer; border: 1px solid #ccc; background: #fff; }
+.status-buttons button.active { background: #007bff; color: #fff; border-color: #007bff; }
+
+/* 상세 모달 */
+.detail { 
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: #fff; padding: 20px; box-sizing: border-box; z-index: 1000;
 }
-
-.toggle-btn {
-    flex: 1;
-    border: none;
-    background: none;
-    z-index: 2;
-    cursor: pointer;
-    font-weight: 700;
-    color: #999;
-    font-size: 14px;
-    transition: color 0.3s;
-}
-
-.toggle-btn.active { color: #fff; }
-
-.toggle-slider {
-    position: absolute;
-    top: 4px; left: 4px;
-    width: calc(50% - 4px);
-    height: calc(100% - 8px);
-    background: var(--lilac-accent);
-    border-radius: 25px;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1;
-    box-shadow: 0 2px 8px rgba(142, 130, 189, 0.3);
-}
-
-/* 필터가 "마감"일 때 슬라이더 이동 */
-.toggle-container:has([data-status="마감"].active) .toggle-slider {
-    transform: translateX(100%);
-}
-
-/* 카드 & 리스트 */
-#policyList { padding: 20px; max-width: 600px; margin: 0 auto; }
-.card {
-    background: #fff; border-radius: 16px; padding: 20px; margin-bottom: 12px;
-    box-shadow: 0 4px 12px rgba(180, 160, 220, 0.08); border: 1px solid #f0edff;
-}
-.card h3 { font-size: 16px; color: var(--lilac-dark); margin: 0 0 10px; }
+#backBtn { padding: 10px; margin-bottom: 20px; cursor: pointer; }
