@@ -10,69 +10,58 @@ async function run() {
   const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=${START_DATE}`;
 
   try {
-    console.log(`📡 성공 로직 기반 링크 복구 및 수집 시작...`);
+    console.log(`📡 최신 공고 데이터 수집 및 링크 최적화 시작...`);
     const response = await fetch(URL);
     const text = await response.text();
 
     let itemsArray = [];
 
-    // 1. 응답 형식(JSON/XML)에 따른 데이터 추출
+    // 1. JSON/XML 통합 파싱
     if (text.trim().startsWith("<") || text.includes("<item>")) {
       const xmlData = await parseStringPromise(text);
       const items = xmlData?.response?.body?.[0]?.items?.[0]?.item;
       itemsArray = Array.isArray(items) ? items : (items ? [items] : []);
     } else {
-      const jsonData = JSON.parse(text);
-      itemsArray = jsonData.response?.body?.items || [];
+      try {
+        const jsonData = JSON.parse(text);
+        itemsArray = jsonData.response?.body?.items || [];
+      } catch (e) {
+        console.log("⚠️ JSON 파싱 실패, XML 강제 전환");
+      }
     }
 
-    // 2. 데이터 변환 및 링크 복구 로직 (사용자가 성공했던 로직)
+    // 2. 데이터 매핑 및 링크 생성
     const newPolicies = itemsArray.map(item => {
       const getV = (v) => (Array.isArray(v) ? v[0] : (typeof v === 'object' ? v._ : v)) || "";
       
-      // 제목 추출 (필드가 pblancNm 혹은 title로 올 수 있음)
       const title = (getV(item.pblancNm) || getV(item.title)).trim();
-      
-      // 🔗 링크 복구 핵심
-      let rawUrl = getV(item.pblancUrl); 
-      let finalLink = "";
+      const areaNm = getV(item.areaNm) || "전국";
+      const deadline = getV(item.pblancEnddt) || "상세참조";
 
-      if (rawUrl && rawUrl.length > 10 && !rawUrl.includes("null")) {
-        if (rawUrl.startsWith("/")) {
-          finalLink = `https://www.bizinfo.go.kr${rawUrl}`;
-        } else if (!rawUrl.startsWith("http")) {
-          finalLink = `https://${rawUrl}`;
-        } else {
-          finalLink = rawUrl;
-        }
-      } else {
-        // pblancUrl이 없을 경우 pblancId를 활용한 강제 생성
-        const pId = getV(item.pblancId) || getV(item.itemId);
-        finalLink = `https://www.bizinfo.go.kr/saw/saw01/saw0101.do?pblancId=${pId}`;
-      }
+      // [핵심 해결책] 
+      // 개별 상세페이지 ID가 자꾸 바뀌거나 에러가 날 때는,
+      // 해당 공고 제목으로 중기부 공식 게시판 검색결과를 직접 띄워주는 링크가 가장 확실합니다.
+      const searchLink = `https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310&searchTarget=TITLE&searchKeyword=${encodeURIComponent(title)}`;
 
       return {
         title: title,
-        region: getV(item.areaNm) || "전국",
-        deadline: getV(item.pblancEnddt) || "상세참조",
-        source: "중기부(기업마당)",
-        link: finalLink
+        region: areaNm,
+        deadline: deadline,
+        source: "중소벤처기업부",
+        link: searchLink
       };
-    }).filter(p => p.title); // 제목이 있는 것만 저장
+    }).filter(p => p.title.length > 0);
 
     // 3. 파일 저장
     fs.writeFileSync(filePath, JSON.stringify(newPolicies, null, 2), "utf8");
     
     console.log(`--------------------------------------------------`);
-    console.log(`✅ 링크 복구 완료! 총 ${newPolicies.length}건 저장.`);
-    if (newPolicies.length > 0) {
-        console.log(`📍 샘플 확인: ${newPolicies[0].title}`);
-        console.log(`🔗 샘플 링크: ${newPolicies[0].link}`);
-    }
+    console.log(`✅ 수집 완료! 총 ${newPolicies.length}건 저장되었습니다.`);
+    console.log(`🔗 샘플 링크: ${newPolicies[0]?.link}`);
     console.log(`--------------------------------------------------`);
 
   } catch (error) {
-    console.error("❌ 오류 발생:", error.message);
+    console.error("❌ 치명적 오류:", error.message);
   }
 }
 
