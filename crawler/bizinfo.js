@@ -8,7 +8,7 @@ async function run() {
   const SERVICE_KEY = "e8e40ea23b405a5abba75382a331e61f9052570e9e95a7ca6cf5db14818ba22b";
   
   // 2. 파라미터 보강 (&_type=json 추가)
-  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=20&returnType=json&_type=json`;
+  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&_type=json`;
 
   const filePath = path.join(process.cwd(), "policies.json");
 
