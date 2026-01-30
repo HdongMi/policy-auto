@@ -97,7 +97,6 @@ function render() {
             <p>📍 ${p.region}</p>
             <p>📅 ${p.deadline}</p>
         `;
-        // 클릭 시 새로운 상세 페이지로 이동하도록 수정
         card.onclick = () => openDetail(p);
         listEl.appendChild(card);
     });
@@ -111,19 +110,21 @@ function parseDate(str) {
     return null;
 }
 
-// 5. 상세 페이지로 이동 (URL 파라미터 활용)
+// 5. 상세 페이지로 이동 (중요: 파라미터를 하나씩 직접 실어 보냅니다)
 function openDetail(p) {
     const baseUrl = "detail.html";
-    // 한글이나 특수문자가 주소창에서 깨지지 않도록 encodeURIComponent 사용
-    const params = new URLSearchParams({
-        title: p.title,
-        region: p.region || "전국",
-        deadline: p.deadline,
-        source: p.source || "상세참조",
-        link: p.link
-    });
     
-    location.href = `${baseUrl}?${params.toString()}`;
+    // 데이터가 비어있을 경우를 대비해 기본값을 설정합니다.
+    const title = encodeURIComponent(p.title || "");
+    const region = encodeURIComponent(p.region || "전국");
+    const deadline = encodeURIComponent(p.deadline || "상세참조");
+    const source = encodeURIComponent(p.source || "유관기관");
+    const link = encodeURIComponent(p.link || ""); // 실제 이동할 주소
+
+    // 주소 생성: detail.html?title=...&link=...
+    const fullUrl = `${baseUrl}?title=${title}&region=${region}&deadline=${deadline}&source=${source}&link=${link}`;
+    
+    location.href = fullUrl;
 }
 
 // 6. 필터 토글
