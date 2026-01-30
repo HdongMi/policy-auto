@@ -1,5 +1,5 @@
 let policies = [];
-let currentStatus = "접수중"; 
+let currentStatus = "접수중";
 let searchQuery = "";
 
 const landingPage = document.getElementById('landingPage');
@@ -10,7 +10,7 @@ const toggleButtons = document.querySelectorAll('.toggle-btn');
 const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
 
-// 1. 초기화 및 뒤로가기 감지 (SPA)
+// 1. 초기화 (sessionStorage 확인)
 function init() {
     const isVisited = sessionStorage.getItem('visited');
     if (isVisited === 'true') {
@@ -20,7 +20,7 @@ function init() {
     }
 }
 
-// 브라우저 뒤로가기/앞으로가기 대응
+// 브라우저 뒤로가기 대응 (SPA)
 window.onpopstate = (event) => {
     if (event.state && event.state.view === 'detail') {
         showDetailUI(event.state.policy);
@@ -36,9 +36,9 @@ startBtn.onclick = () => {
     fetchData();
 };
 
-// 2. 데이터 가져오기 (캐시 방지)
+// 2. 데이터 가져오기
 function fetchData() {
-    listEl.innerHTML = "<div style='padding:40px; text-align:center; color:#888;'>데이터를 불러오는 중입니다...</div>";
+    listEl.innerHTML = "<div style='padding:40px; text-align:center;'>데이터 로딩 중...</div>";
     const cacheBuster = new Date().getTime();
     
     fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${cacheBuster}`)
@@ -52,7 +52,7 @@ function fetchData() {
         });
 }
 
-// 3. 상세 페이지 노출 로직
+// 3. 상세 페이지 로직
 function openDetail(p) {
     const urlSafeTitle = encodeURIComponent(p.title.substring(0, 10));
     history.pushState({ view: 'detail', policy: p }, p.title, `?policy=${urlSafeTitle}`);
@@ -81,10 +81,10 @@ function closeDetailUI() {
     mainLayout.classList.remove("hidden");
 }
 
-// 4. 날짜 비교 함수 (마감 여부 판단)
+// 4. 날짜 파싱 (마감 여부 판단)
 function parseDate(str) {
     if (!str || str.includes("상세참조") || str.includes("소진시") || str.includes("상시")) {
-        return new Date("2099-12-31"); 
+        return new Date("2099-12-31");
     }
     let datePart = str;
     if (str.includes('~')) {
@@ -98,7 +98,7 @@ function parseDate(str) {
     return null;
 }
 
-// 5. 화면 렌더링 (검색 + 탭 필터 적용)
+// 5. 렌더링 함수
 function render() {
     listEl.innerHTML = "";
     const today = new Date();
@@ -108,10 +108,10 @@ function render() {
         const deadlineDate = parseDate(p.deadline);
         const isClosed = deadlineDate ? deadlineDate < today : false;
 
-        // 탭 상태 필터링 (접수중 / 마감)
+        // 탭 필터 (접수중 / 마감)
         let statusMatch = (currentStatus === "접수중") ? !isClosed : isClosed;
 
-        // 검색어 필터링
+        // 검색어 필터
         const searchMatch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           p.region.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -119,9 +119,7 @@ function render() {
     });
 
     if (filtered.length === 0) {
-        listEl.innerHTML = `<div style='padding:80px 20px; text-align:center; color:#aaa; font-size:1.1rem;'>
-            조회된 ${currentStatus} 공고가 없습니다.
-        </div>`;
+        listEl.innerHTML = `<div style='padding:50px; text-align:center; color:#888;'>${currentStatus} 항목이 없습니다.</div>`;
         return;
     }
 
@@ -137,7 +135,7 @@ function render() {
     });
 }
 
-// 6. 이벤트 리스너 설정
+// 6. 이벤트 리스너
 if (searchInput) {
     searchInput.oninput = (e) => {
         searchQuery = e.target.value;
