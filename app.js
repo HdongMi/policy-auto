@@ -7,11 +7,12 @@ const mainLayout = document.getElementById('mainLayout');
 const startBtn = document.getElementById('startBtn');
 const listEl = document.getElementById('policyList');
 const toggleBtns = document.querySelectorAll('.toggle-btn');
+const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
 
-// 1. 랜딩 페이지 및 세션 제어
+// 1. 랜딩 페이지 제어
 if (sessionStorage.getItem('visited') === 'true') {
-    if (landingPage) landingPage.style.display = 'none'; 
+    if (landingPage) landingPage.classList.add('hidden');
     if (mainLayout) mainLayout.classList.remove('hidden');
     fetchData();
 }
@@ -45,9 +46,6 @@ function fetchData() {
         .then(data => {
             policies = data;
             render();
-        })
-        .catch(err => {
-            listEl.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>데이터를 불러올 수 없습니다.</p>";
         });
 }
 
@@ -62,15 +60,12 @@ function render() {
         const deadlineDate = parseDate(p.deadline);
         const isClosed = deadlineDate && deadlineDate < today;
         const statusMatch = (currentStatus === "마감" ? isClosed : !isClosed);
-        
         const searchText = (p.title + p.region).toLowerCase();
-        const searchMatch = searchText.includes(searchQuery);
-
-        return statusMatch && searchMatch;
+        return statusMatch && searchText.includes(searchQuery);
     });
 
     if (filtered.length === 0) {
-        listEl.innerHTML = `<p style='text-align:center; padding:100px; color:#bbb;'>검색 결과가 없습니다.</p>`;
+        listEl.innerHTML = `<p style='text-align:center; padding:100px; color:#bbb;'>결과가 없습니다.</p>`;
         return;
     }
 
@@ -83,14 +78,11 @@ function render() {
             else if (diff > 0) dDayHtml = `<span style="background:var(--lilac); color:white; padding:4px 10px; border-radius:8px; font-size:12px;">D-${diff}</span>`;
         }
 
-        const statusColor = currentStatus === "마감" ? "#e63946" : "#2a9d8f";
-        const statusText = currentStatus === "마감" ? "접수마감" : "접수중";
-
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <span style="font-weight:800; color:${statusColor}; font-size:13px;">● ${statusText}</span>
+                <span style="font-weight:800; color:${currentStatus === "마감" ? "#e63946" : "#2a9d8f"}; font-size:13px;">● ${currentStatus === "마감" ? "접수마감" : "접수중"}</span>
                 ${dDayHtml}
             </div>
             <h3>${p.title}</h3>
@@ -110,24 +102,19 @@ function parseDate(str) {
     return null;
 }
 
-// 5. 상세 페이지로 이동 (중요: 파라미터를 하나씩 직접 실어 보냅니다)
+// 5. 상세 보기 (레이어 방식 복구)
 function openDetail(p) {
-    const baseUrl = "detail.html";
-    
-    // 데이터가 비어있을 경우를 대비해 기본값을 설정합니다.
-    const title = encodeURIComponent(p.title || "");
-    const region = encodeURIComponent(p.region || "전국");
-    const deadline = encodeURIComponent(p.deadline || "상세참조");
-    const source = encodeURIComponent(p.source || "유관기관");
-    const link = encodeURIComponent(p.link || ""); // 실제 이동할 주소
-
-    // 주소 생성: detail.html?title=...&link=...
-    const fullUrl = `${baseUrl}?title=${title}&region=${region}&deadline=${deadline}&source=${source}&link=${link}`;
-    
-    location.href = fullUrl;
+    document.getElementById("detailTitle").innerText = p.title;
+    document.getElementById("detailTarget").innerText = p.region || "전국";
+    document.getElementById("detailDeadline").innerText = p.deadline;
+    document.getElementById("detailSource").innerText = p.source || "상세참조";
+    document.getElementById("detailLink").href = p.link;
+    detailView.classList.remove("hidden");
+    window.scrollTo(0, 0);
 }
 
-// 6. 필터 토글
+document.getElementById("backBtn").onclick = () => detailView.classList.add("hidden");
+
 toggleBtns.forEach(btn => {
     btn.onclick = () => {
         toggleBtns.forEach(b => b.classList.remove("active"));
