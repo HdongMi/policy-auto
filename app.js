@@ -10,9 +10,9 @@ const toggleBtns = document.querySelectorAll('.toggle-btn');
 const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
 
-// 1. 랜딩 페이지 제어
+// 1. 랜딩 페이지 및 세션 제어
 if (sessionStorage.getItem('visited') === 'true') {
-    if (landingPage) landingPage.classList.add('hidden');
+    if (landingPage) landingPage.style.display = 'none';
     if (mainLayout) mainLayout.classList.remove('hidden');
     fetchData();
 }
@@ -29,7 +29,7 @@ if (startBtn) {
     };
 }
 
-// 2. 검색 이벤트
+// 2. 검색 및 필터링
 if (searchInput) {
     searchInput.addEventListener('input', (e) => {
         searchQuery = e.target.value.toLowerCase();
@@ -37,7 +37,6 @@ if (searchInput) {
     });
 }
 
-// 3. 데이터 로드
 function fetchData() {
     if (!listEl) return;
     listEl.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>데이터 로딩 중...</p>";
@@ -46,10 +45,12 @@ function fetchData() {
         .then(data => {
             policies = data;
             render();
+        })
+        .catch(() => {
+            listEl.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>데이터를 불러올 수 없습니다.</p>";
         });
 }
 
-// 4. 렌더링
 function render() {
     if (!listEl) return;
     listEl.innerHTML = "";
@@ -102,13 +103,26 @@ function parseDate(str) {
     return null;
 }
 
-// 5. 상세 보기 (레이어 방식 복구)
+// 3. 상세 보기 함수 (링크 문제 해결의 핵심)
 function openDetail(p) {
     document.getElementById("detailTitle").innerText = p.title;
     document.getElementById("detailTarget").innerText = p.region || "전국";
     document.getElementById("detailDeadline").innerText = p.deadline;
     document.getElementById("detailSource").innerText = p.source || "상세참조";
-    document.getElementById("detailLink").href = p.link;
+
+    const linkBtn = document.getElementById("detailLink");
+    
+    // 데이터가 있을 때만 href를 업데이트하고, 없으면 경고창 띄우기
+    if (p.link && p.link.length > 5) {
+        linkBtn.setAttribute('href', p.link);
+        linkBtn.innerText = "공식 공고 페이지로 이동";
+        linkBtn.style.background = "var(--lilac)";
+    } else {
+        linkBtn.setAttribute('href', '#');
+        linkBtn.innerText = "상세 링크 준비 중";
+        linkBtn.style.background = "#ccc";
+    }
+
     detailView.classList.remove("hidden");
     window.scrollTo(0, 0);
 }
