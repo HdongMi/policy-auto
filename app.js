@@ -1,8 +1,8 @@
 let policies = [];
-let currentStatus = "접수중"; 
+let currentStatus = "접수중";
 let searchQuery = "";
 
-// HTML 요소 연결
+// 요소 선택
 const landingPage = document.getElementById('landingPage');
 const mainLayout = document.getElementById('mainLayout');
 const startBtn = document.getElementById('startBtn');
@@ -10,27 +10,32 @@ const listEl = document.getElementById('policyList');
 const toggleButtons = document.querySelectorAll('.toggle-btn');
 const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
+const backBtn = document.getElementById('backBtn');
 
-// 1. 초기화 (URL에 policy 파라미터가 있으면 바로 상세페이지 노출)
+// 1. 초기 실행 로직
 function init() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const policyTitle = urlParams.get('policy');
-
-    // 일단 데이터부터 불러오기
-    fetchData();
-
-    // 방문 기록이 있으면 랜딩페이지 건너뛰기
+    // 세션에 방문 기록이 있다면 바로 메인으로
     if (sessionStorage.getItem('visited') === 'true') {
-        landingPage.classList.add('hidden');
-        mainLayout.classList.remove('hidden');
+        showMainLayout();
     }
+    
+    // 무조건 데이터는 미리 불러옴
+    fetchData();
 }
 
-// 2. 데이터 가져오기 (GitHub Pages 주소 활용)
+// 메인 화면 보여주기 함수
+function showMainLayout() {
+    landingPage.classList.add('hidden');
+    mainLayout.classList.remove('hidden');
+    detailView.classList.add('hidden');
+}
+
+// 2. 데이터 가져오기
 function fetchData() {
+    if(!listEl) return;
     listEl.innerHTML = "<div style='padding:40px; text-align:center;'>데이터 로딩 중...</div>";
-    const cacheBuster = new Date().getTime();
     
+    const cacheBuster = new Date().getTime();
     fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${cacheBuster}`)
         .then(res => res.json())
         .then(data => {
@@ -42,29 +47,24 @@ function fetchData() {
         });
 }
 
-// 3. 화면 전환 로직 (상세보기)
+// 3. 상세 페이지 전환
 function openDetail(p) {
-    // 1. 주소창 변경 (SPA 방식)
     const urlSafeTitle = encodeURIComponent(p.title.substring(0, 10));
     history.pushState({ view: 'detail', policy: p }, p.title, `?policy=${urlSafeTitle}`);
-    
     showDetailUI(p);
 }
 
 function showDetailUI(p) {
-    // 데이터 채우기
     document.getElementById("detailTitle").innerText = p.title;
     document.getElementById("detailTarget").innerText = p.region;
     document.getElementById("detailDeadline").innerText = p.deadline;
     document.getElementById("detailSource").innerText = p.source;
 
-    const oldBtn = document.getElementById("detailLink");
-    const newBtn = oldBtn.cloneNode(true);
-    newBtn.href = p.link;
-    newBtn.target = "_blank";
-    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+    const oldLinkBtn = document.getElementById("detailLink");
+    const newLinkBtn = oldLinkBtn.cloneNode(true);
+    newLinkBtn.href = p.link;
+    oldLinkBtn.parentNode.replaceChild(newLinkBtn, oldLinkBtn);
 
-    // 화면 전환 (메인은 숨기고 상세만 보이기)
     mainLayout.classList.add("hidden");
     landingPage.classList.add("hidden");
     detailView.classList.remove("hidden");
@@ -76,7 +76,7 @@ function closeDetailUI() {
     mainLayout.classList.remove("hidden");
 }
 
-// 브라우저 뒤로가기 버튼 대응 (핵심)
+// 브라우저 뒤로가기 대응
 window.onpopstate = (event) => {
     if (event.state && event.state.view === 'detail') {
         showDetailUI(event.state.policy);
@@ -85,10 +85,10 @@ window.onpopstate = (event) => {
     }
 };
 
-// 4. 날짜 파싱 (마감 여부 판단)
+// 4. 날짜 파싱 (마감 판단)
 function parseDate(str) {
     if (!str || str.includes("상세참조") || str.includes("소진시") || str.includes("상시")) {
-        return new Date("2099-12-31"); 
+        return new Date("2099-12-31");
     }
     let datePart = str;
     if (str.includes('~')) {
@@ -102,8 +102,9 @@ function parseDate(str) {
     return null;
 }
 
-// 5. 공고 목록 출력
+// 5. 렌더링
 function render() {
+    if(!listEl) return;
     listEl.innerHTML = "";
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -118,4 +119,53 @@ function render() {
     });
 
     if (filtered.length === 0) {
-        listEl
+        listEl.innerHTML = `<div style='padding:50px; text-align:center; color:#888;'>조회된 공고가 없습니다.</div>`;
+        return;
+    }
+
+    filtered.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<h3>${p.title}</h3><p>${p.region} | ${p.deadline}</p>`;
+        card.onclick = () => openDetail(p);
+        listEl.appendChild(card);
+    });
+}
+
+// 6. 모든 이벤트 리스너 (직관적으로 배치)
+
+// 스플래시 버튼 클릭
+if (startBtn) {
+    startBtn.addEventListener('click', () => {
+        sessionStorage.setItem('visited', 'true');
+        showMainLayout();
+    });
+}
+
+// 검색 입력
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        searchQuery = e.target.value;
+        render();
+    });
+}
+
+// 탭 전환 (접수중/마감)
+toggleButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        toggleButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentStatus = btn.innerText.trim();
+        render();
+    });
+});
+
+// 상세페이지 뒤로가기 버튼
+if (backBtn) {
+    backBtn.onclick = () => {
+        history.back();
+    };
+}
+
+// 앱 시작
+init();
