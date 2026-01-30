@@ -1,5 +1,5 @@
 let policies = [];
-let currentStatus = "전체";
+let currentStatus = "접수중"; // 초기값을 '접수중'으로 맞춰야 데이터가 바로 뜹니다.
 
 const landingPage = document.getElementById('landingPage');
 const mainLayout = document.getElementById('mainLayout');
@@ -30,7 +30,7 @@ startBtn.addEventListener('click', () => {
 
 /** 3. 데이터 패치 */
 function fetchData() {
-  listEl.innerHTML = "<p style='text-align:center; padding:20px;'>정책을 불러오는 중...</p>";
+  listEl.innerHTML = "<p style='text-align:center; padding:20px; color:#8e82bd;'>정책 공고를 불러오는 중...</p>";
   const url = `https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`;
   
   fetch(url)
@@ -40,7 +40,7 @@ function fetchData() {
       render();
     })
     .catch(err => {
-      listEl.innerHTML = "<p>데이터를 불러올 수 없습니다.</p>";
+      listEl.innerHTML = "<p style='text-align:center; padding:20px;'>데이터 로드에 실패했습니다.</p>";
     });
 }
 
@@ -56,7 +56,7 @@ function getEndDate(deadlineStr) {
   return null;
 }
 
-/** 5. 리스트 렌더링 (클릭 기능 포함) */
+/** 5. 리스트 렌더링 */
 function render() {
   listEl.innerHTML = "";
   const today = new Date();
@@ -65,44 +65,56 @@ function render() {
   const filtered = policies.filter(p => {
     const deadlineDate = getEndDate(p.deadline);
     const isClosed = deadlineDate && deadlineDate < today;
+    // '마감' 탭일 땐 종료된 것만, '전체(접수중)' 탭일 땐 진행 중인 것만 필터링
     return currentStatus === "마감" ? isClosed : !isClosed;
   });
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = `<p style='text-align:center; padding:50px; color:#999;'>해당하는 공고가 없습니다.</p>`;
+    return;
+  }
 
   filtered.forEach(p => {
     const deadlineDate = getEndDate(p.deadline);
     let dDayHtml = "";
+    
+    // D-Day 배지 설정
     if (!deadlineDate) {
-      dDayHtml = `<span class="d-day" style="background:#eee; color:#666;">기한확인</span>`;
+      dDayHtml = `<span class="d-day" style="background:#f1f3f5; color:#666;">기한확인</span>`;
     } else {
       const diff = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
-      if (diff === 0) dDayHtml = `<span class="d-day" style="background:#ff9f9f; color:white;">오늘마감</span>`;
+      if (diff === 0) dDayHtml = `<span class="d-day" style="background:#ff4757; color:white;">오늘마감</span>`;
       else if (diff > 0) dDayHtml = `<span class="d-day" style="background:var(--lilac-accent); color:white;">D-${diff}</span>`;
-      else dDayHtml = `<span class="d-day" style="background:#bbb; color:white;">종료</span>`;
+      else dDayHtml = `<span class="d-day" style="background:#adb5bd; color:white;">종료</span>`;
     }
+
+    // ⭐ 상태 텍스트 색상 분기 (접수중: 초록, 마감: 빨강)
+    const statusColor = currentStatus === "마감" ? "#e63946" : "#2a9d8f";
+    const statusLabel = currentStatus === "마감" ? "접수마감" : "접수중";
 
     const card = document.createElement("div");
     card.className = "card";
+    card.style.cursor = "pointer"; // 카드인 걸 알 수 있게 커서 추가
     card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-        <span style="font-size:12px; font-weight:bold; color:var(--lilac-accent)">● ${currentStatus === "마감" ? "마감" : "접수중"}</span>
+      <div style="display:flex; justify-content:space-between; margin-bottom:12px; align-items:center;">
+        <span style="font-size:12px; font-weight:800; color:${statusColor}">● ${statusLabel}</span>
         ${dDayHtml}
       </div>
-      <h3>${p.title}</h3>
-      <div style="font-size:13px; color:#777;">
-        <p>📍 지역: ${p.region}</p>
-        <p>📅 기한: ${p.deadline}</p>
+      <h3 style="margin:0 0 10px 0; font-size:16px; line-height:1.4;">${p.title}</h3>
+      <div style="font-size:13px; color:#666;">
+        <p style="margin:4px 0;">📍 지역: ${p.region}</p>
+        <p style="margin:4px 0;">📅 기한: ${p.deadline}</p>
       </div>
     `;
     
-    // ⭐ [핵심 복구] 카드 클릭 시 상세 페이지 열기
-    card.onclick = () => openDetail(p);
+    // ⭐ [기능 복구] 클릭 시 상세 정보 열기
+    card.addEventListener('click', () => openDetail(p));
     listEl.appendChild(card);
   });
 }
 
-/** 6. 상세 보기 열기 (데이터 바인딩) */
+/** 6. 상세 보기 열기 */
 function openDetail(p) {
-  const detailView = document.getElementById("detailView");
   document.getElementById("detailTitle").textContent = p.title;
   document.getElementById("detailTarget").textContent = p.region || "전국";
   document.getElementById("detailDeadline").textContent = p.deadline;
@@ -111,8 +123,7 @@ function openDetail(p) {
   const link = document.getElementById("detailLink");
   link.href = p.link;
   
-  // 모달 보이기
-  detailView.classList.remove("hidden");
+  document.getElementById("detailView").classList.remove("hidden");
 }
 
 /** 7. 상세 보기 닫기 */
@@ -122,12 +133,14 @@ document.getElementById("backBtn").onclick = () => {
 
 /** 8. 토글 스위치 이벤트 */
 toggleBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.onclick = () => {
     toggleBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    currentStatus = btn.dataset.status;
+    
+    // 필터 값 업데이트
+    currentStatus = btn.dataset.status === "전체" ? "접수중" : btn.dataset.status;
     render();
-  });
+  };
 });
 
 init();
