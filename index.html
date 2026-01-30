@@ -1,36 +1,46 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>소상공인 정책 알리미 (복구본)</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>소상공인 정책 알리미</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div id="landingPage" style="text-align:center; padding:100px 20px;">
-        <h1>소상공인 정책 알리미</h1>
-        <button id="startBtn" style="padding:15px 30px; font-size:18px; cursor:pointer;">정책 확인하기</button>
-    </div>
 
-    <div id="mainLayout" class="hidden">
-        <div style="text-align:center; padding:20px;">
-            <div class="status-buttons">
-                <button class="active" data-status="전체">접수중</button>
-                <button data-status="마감">마감</button>
-            </div>
+  <div id="landingPage" class="landing">
+    <div class="landing-content">
+      <h1>소상공인 정책 알리미</h1>
+      <p>나에게 꼭 맞는 정책 정보를<br>한곳에서 확인하세요.</p>
+      <button id="startBtn" class="start-btn">정책 확인하기</button>
+    </div>
+  </div>
+
+  <div id="mainLayout" class="hidden">
+    <header class="header">
+      <h1>소상공인 정책 알리미</h1>
+      <div class="filters">
+        <div class="toggle-container">
+          <button class="toggle-btn active" data-status="전체">접수중</button>
+          <button class="toggle-btn" data-status="마감">마감</button>
+          <div class="toggle-slider"></div>
         </div>
-        <div id="policyList"></div>
-    </div>
+      </div>
+    </header>
+    <main id="policyList"></main>
+  </div>
 
-    <div id="detailView" class="detail hidden">
-        <button id="backBtn">← 뒤로가기</button>
-        <h2 id="detailTitle"></h2>
-        <p><strong>대상:</strong> <span id="detailTarget"></span></p>
-        <p><strong>기간:</strong> <span id="detailDeadline"></span></p>
-        <p><strong>출처:</strong> <span id="detailSource"></span></p>
-        <a id="detailLink" href="#" target="_blank" style="display:block; margin-top:20px; text-align:center; padding:15px; background:#007bff; color:#fff; text-decoration:none;">공식 사이트 이동</a>
+  <div id="detailView" class="detail hidden">
+    <button id="backBtn">← 뒤로가기</button>
+    <h2 id="detailTitle"></h2>
+    <div class="detail-info">
+        <p><strong>📍 지역:</strong> <span id="detailTarget"></span></p>
+        <p><strong>📅 기간:</strong> <span id="detailDeadline"></span></p>
+        <p><strong>🏛️ 출처:</strong> <span id="detailSource"></span></p>
     </div>
+    <a id="detailLink" class="apply-link" target="_blank">공식 공고 페이지로 이동</a>
+  </div>
 
-    <script src="app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
