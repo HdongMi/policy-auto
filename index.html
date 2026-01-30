@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>소상공인 정책 알리미</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -26,7 +26,7 @@
       </nav>
 
       <div class="search-container">
-        <input type="text" id="searchInput" placeholder="정책명이나 지역을 검색해보세요 (예: 서울, 이자)" />
+        <input type="text" id="searchInput" placeholder="정책명이나 지역을 검색해보세요" />
       </div>
 
       <div class="filters">
@@ -42,16 +42,30 @@
   </div>
 
   <div id="detailView" class="detail hidden">
-    <button id="backBtn">← 뒤로가기</button>
     <div class="detail-header">
-      <h2 id="detailTitle"></h2>
+      <button id="backBtn">← 뒤로가기</button>
     </div>
-    <div class="detail-container">
-        <div class="detail-section"><strong>📍 대상/지역</strong><p id="detailTarget"></p></div>
-        <div class="detail-section"><strong>📅 신청기간</strong><p id="detailDeadline"></p></div>
-        <div class="detail-section"><strong>🏛️ 출처</strong><p id="detailSource"></p></div>
+
+    <div class="detail-body">
+      <h2 id="detailTitle" style="margin-top:0; margin-bottom:20px;"></h2>
+      
+      <div class="detail-container">
+          <div class="detail-section">
+            <strong>📍 대상/지역</strong>
+            <p id="detailTarget"></p>
+          </div>
+          <div class="detail-section">
+            <strong>📅 신청기간</strong>
+            <p id="detailDeadline"></p>
+          </div>
+          <div class="detail-section">
+            <strong>🏛️ 출처</strong>
+            <p id="detailSource"></p>
+          </div>
+      </div>
+      
+      <a id="detailLink" class="apply-btn" target="_blank">공식 공고 페이지로 이동</a>
     </div>
-    <a id="detailLink" class="apply-btn" target="_blank">공식 공고 페이지로 이동</a>
   </div>
 
   <script src="app.js"></script>
