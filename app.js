@@ -1,15 +1,16 @@
 let policies = [];
-let currentStatus = "전체";
+let currentStatus = "접수중"; 
 let searchQuery = "";
 
 const landingPage = document.getElementById('landingPage');
 const mainLayout = document.getElementById('mainLayout');
 const startBtn = document.getElementById('startBtn');
 const listEl = document.getElementById('policyList');
-const statusButtons = document.querySelectorAll('.status-buttons button');
+const toggleButtons = document.querySelectorAll('.toggle-btn');
 const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
 
+// 1. 초기화 및 뒤로가기 감지 (SPA)
 function init() {
     const isVisited = sessionStorage.getItem('visited');
     if (isVisited === 'true') {
@@ -19,7 +20,7 @@ function init() {
     }
 }
 
-// 브라우저 뒤로가기 대응 (SPA)
+// 브라우저 뒤로가기/앞으로가기 대응
 window.onpopstate = (event) => {
     if (event.state && event.state.view === 'detail') {
         showDetailUI(event.state.policy);
@@ -35,9 +36,11 @@ startBtn.onclick = () => {
     fetchData();
 };
 
+// 2. 데이터 가져오기 (캐시 방지)
 function fetchData() {
-    listEl.innerHTML = "<div style='padding:20px; text-align:center;'>최신 공고 동기화 중...</div>";
+    listEl.innerHTML = "<div style='padding:40px; text-align:center; color:#888;'>데이터를 불러오는 중입니다...</div>";
     const cacheBuster = new Date().getTime();
+    
     fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${cacheBuster}`)
         .then(res => res.json())
         .then(data => {
@@ -45,10 +48,11 @@ function fetchData() {
             render();
         })
         .catch(err => {
-            listEl.innerHTML = "데이터를 불러오는 데 실패했습니다.";
+            listEl.innerHTML = "<div style='padding:40px; text-align:center; color:red;'>데이터 로딩 실패</div>";
         });
 }
 
+// 3. 상세 페이지 노출 로직
 function openDetail(p) {
     const urlSafeTitle = encodeURIComponent(p.title.substring(0, 10));
     history.pushState({ view: 'detail', policy: p }, p.title, `?policy=${urlSafeTitle}`);
@@ -77,47 +81,37 @@ function closeDetailUI() {
     mainLayout.classList.remove("hidden");
 }
 
-// [핵심] 날짜 파싱 함수 보강
+// 4. 날짜 비교 함수 (마감 여부 판단)
 function parseDate(str) {
     if (!str || str.includes("상세참조") || str.includes("소진시") || str.includes("상시")) {
-        // 종료일이 명확하지 않은 경우 '마감 안됨'으로 처리하기 위해 아주 먼 미래 날짜 반환
         return new Date("2099-12-31"); 
     }
-
-    // "2026-01-30 ~ 2026-02-15" 에서 종료일인 "2026-02-15"만 추출
     let datePart = str;
     if (str.includes('~')) {
         const parts = str.split('~');
         datePart = parts[1].trim() || parts[0].trim();
     }
-
     const cleanStr = datePart.replace(/[^0-9]/g, '');
     if (cleanStr.length >= 8) {
-        const y = cleanStr.substring(0, 4);
-        const m = cleanStr.substring(4, 6);
-        const d = cleanStr.substring(6, 8);
-        return new Date(`${y}-${m}-${d}`);
+        return new Date(`${cleanStr.substr(0,4)}-${cleanStr.substr(4,2)}-${cleanStr.substr(6,2)}`);
     }
     return null;
 }
 
+// 5. 화면 렌더링 (검색 + 탭 필터 적용)
 function render() {
     listEl.innerHTML = "";
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const filtered = policies.filter(p => {
-        // 1. 마감 여부 판별
         const deadlineDate = parseDate(p.deadline);
-        // 날짜가 없으면 일단 '접수중'으로 간주, 날짜가 있으면 오늘과 비교
         const isClosed = deadlineDate ? deadlineDate < today : false;
 
-        // 2. 탭 필터링
-        let statusMatch = true;
-        if (currentStatus === "접수중") statusMatch = !isClosed;
-        else if (currentStatus === "마감") statusMatch = isClosed;
+        // 탭 상태 필터링 (접수중 / 마감)
+        let statusMatch = (currentStatus === "접수중") ? !isClosed : isClosed;
 
-        // 3. 검색어 필터링
+        // 검색어 필터링
         const searchMatch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           p.region.toLowerCase().includes(searchQuery.toLowerCase());
 
@@ -125,29 +119,25 @@ function render() {
     });
 
     if (filtered.length === 0) {
-        listEl.innerHTML = `<div style='padding:40px; text-align:center; color:#888;'>${currentStatus} 항목이 없습니다.</div>`;
+        listEl.innerHTML = `<div style='padding:80px 20px; text-align:center; color:#aaa; font-size:1.1rem;'>
+            조회된 ${currentStatus} 공고가 없습니다.
+        </div>`;
         return;
     }
 
-    filtered.forEach((p) => {
+    filtered.forEach(p => {
         const card = document.createElement("div");
         card.className = "card";
-        // 마감된 항목은 시각적으로 흐리게 처리 (선택사항)
-        const deadlineDate = parseDate(p.deadline);
-        const isClosed = deadlineDate && deadlineDate < today;
-        if (isClosed) card.style.opacity = "0.6";
-
         card.innerHTML = `
             <h3>${p.title}</h3>
             <p>${p.region} | ${p.deadline}</p>
-            ${isClosed ? '<span style="color:red; font-weight:bold;">[마감]</span>' : '<span style="color:green; font-weight:bold;">[접수중]</span>'}
         `;
         card.onclick = () => openDetail(p);
         listEl.appendChild(card);
     });
 }
 
-// 이벤트 리스너들
+// 6. 이벤트 리스너 설정
 if (searchInput) {
     searchInput.oninput = (e) => {
         searchQuery = e.target.value;
@@ -155,11 +145,11 @@ if (searchInput) {
     };
 }
 
-statusButtons.forEach(btn => {
+toggleButtons.forEach(btn => {
     btn.onclick = () => {
-        statusButtons.forEach(b => b.classList.remove("active"));
+        toggleButtons.forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
-        currentStatus = btn.dataset.status; // HTML button에 data-status="접수중" 등이 있어야 함
+        currentStatus = btn.innerText.trim();
         render();
     };
 });
