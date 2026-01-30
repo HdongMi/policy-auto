@@ -1,74 +1,50 @@
 import fs from "fs";
 import path from "path";
 import fetch from "node-fetch";
-import { parseStringPromise } from "xml2js";
 
 async function run() {
+  // 1. 승인받으신 서비스키와 엔드포인트
   const SERVICE_KEY = "e8e40ea23b405a5abba75382a331e61f9052570e9e95a7ca6cf5db14818ba22b";
+  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=20250101`;
+
   const filePath = path.join(process.cwd(), "policies.json");
-  const START_DATE = "20250101"; // 수집 시작일 설정
-  
-  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=${START_DATE}`;
 
   try {
-    console.log(`📡 중기부 데이터 수집 및 링크 정합성 체크 시작...`);
+    console.log("📡 중기부 API로부터 직접 데이터를 수집합니다...");
     const response = await fetch(URL);
-    const text = await response.text();
-
-    let itemsArray = [];
+    const data = await response.json();
     
-    // 1. JSON 또는 XML 응답 처리
-    try {
-        const jsonData = JSON.parse(text);
-        itemsArray = jsonData.response?.body?.items || [];
-    } catch(e) {
-        if (text.includes("<item>")) {
-            const xmlData = await parseStringPromise(text);
-            const items = xmlData?.response?.body?.[0]?.items?.[0]?.item;
-            itemsArray = Array.isArray(items) ? items : (items ? [items] : []);
-        }
-    }
-
-    if (itemsArray.length === 0) {
-      console.log("⚠️ 가져온 공고가 없습니다. 인증키 동기화 또는 파라미터를 확인하세요.");
+    const items = data.response?.body?.items || [];
+    
+    if (items.length === 0) {
+      console.log("⚠️ 수집된 데이터가 없습니다. 서비스키 승인 상태를 확인하세요.");
       return;
     }
 
-    // 2. 데이터 변환 (검색 대신 고유 ID 기반 링크 생성)
-    const newPolicies = itemsArray.map(item => {
-      const getV = (v) => (Array.isArray(v) ? v[0] : (typeof v === 'object' ? v._ : v)) || "";
+    // 2. 링크 꼬임 방지 핵심 로직
+    const newPolicies = items.map(item => {
+      const title = item.pblancNm.trim();
+      const pblancId = item.pblancId; // API에서 제공하는 고유 번호
       
-      const title = getV(item.pblancNm || item.title).trim();
-      const pblancId = getV(item.pblancId); // 공고 고유 ID
-      const areaNm = getV(item.areaNm) || "전국";
-      const deadline = getV(item.pblancEnddt) || "상세참조";
-      
-      // [해결책] 검색 결과에 의존하지 않고 고유 ID를 이용해 기업마당 상세페이지 링크 생성
-      // 이 주소는 공고마다 고유하며 절대 꼬이지 않습니다.
-      const directLink = `https://www.bizinfo.go.kr/saw/saw01/saw0101.do?pblancId=${pblancId}`;
+      // 검색 결과에서 긁어오는 대신, 고유 ID를 사용해 기업마당(비즈인포) 상세페이지 주소를 직접 만듭니다.
+      // 이 주소는 공고마다 고유하므로 절대 제목과 링크가 뒤섞이지 않습니다.
+      const fixedLink = `https://www.bizinfo.go.kr/saw/saw01/saw0101.do?pblancId=${pblancId}`;
 
       return {
         title: title,
-        region: areaNm,
-        deadline: deadline,
+        region: item.areaNm || "전국",
+        deadline: item.pblancEnddt || "상세참조",
         source: "중소벤처기업부",
-        link: directLink
+        link: fixedLink // 1:1 매칭 완료
       };
     });
 
-    // 3. 중복 제거 (제목 기준)
-    const uniquePolicies = newPolicies.filter((v, i, a) => 
-        a.findIndex(t => t.title === v.title) === i
-    );
+    // 3. 중복 제거 및 저장
+    const unique = newPolicies.filter((v, i, a) => a.findIndex(t => t.title === v.title) === i);
+    fs.writeFileSync(filePath, JSON.stringify(unique, null, 2), "utf8");
 
-    // 4. 파일 저장
-    fs.writeFileSync(filePath, JSON.stringify(uniquePolicies, null, 2), "utf8");
-    
-    console.log(`--------------------------------------------------`);
-    console.log(`✅ 수집 완료: 총 ${uniquePolicies.length}건`);
-    console.log(`📂 저장 경로: ${filePath}`);
-    console.log(`💡 이제 'policies.json'을 열어 링크가 잘 매칭되었는지 확인하세요!`);
-    console.log(`--------------------------------------------------`);
+    console.log(`✅ [성공] 총 ${unique.length}건의 공고를 저장했습니다.`);
+    console.log(`💡 이제 'policies.json'을 열어보시면 링크가 모두 다른 것을 확인할 수 있습니다!`);
 
   } catch (error) {
     console.error("❌ 오류 발생:", error.message);
