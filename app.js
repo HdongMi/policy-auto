@@ -13,8 +13,6 @@ function init() {
     landingPage.classList.add('hidden');
     mainLayout.classList.remove('hidden');
     fetchData();
-  } else {
-    landingPage.style.display = 'flex';
   }
 }
 
@@ -29,7 +27,7 @@ startBtn.addEventListener('click', () => {
 });
 
 function fetchData() {
-  listEl.innerHTML = "<p style='text-align:center; padding:20px;'>최신 정책 공고를 불러오는 중입니다...</p>";
+  listEl.innerHTML = "<p style='text-align:center;'>데이터를 가져오는 중...</p>";
   const url = `https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`;
   
   fetch(url)
@@ -39,8 +37,7 @@ function fetchData() {
       render();
     })
     .catch(err => {
-      console.error(err);
-      listEl.innerHTML = "<p style='text-align:center; padding:20px;'>데이터를 불러올 수 없습니다.</p>";
+      listEl.innerHTML = "<p>데이터 로드 실패</p>";
     });
 }
 
@@ -57,53 +54,44 @@ function getEndDate(deadlineStr) {
 
 function render() {
   listEl.innerHTML = "";
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = new Date();
+  today.setHours(0,0,0,0);
 
   const filtered = policies.filter(p => {
-    let isClosed = false;
     const deadlineDate = getEndDate(p.deadline);
-    if (deadlineDate) {
-      isClosed = deadlineDate < today;
-    }
-
-    if (currentStatus === "마감") return isClosed;
-    return !isClosed;
+    const isClosed = deadlineDate && deadlineDate < today;
+    return currentStatus === "마감" ? isClosed : !isClosed;
   });
 
   if (filtered.length === 0) {
-    listEl.innerHTML = `<p style='text-align:center; padding:50px; color:#888;'>공고가 없습니다.</p>`;
+    listEl.innerHTML = `<p style='text-align:center; padding:50px;'>공고가 없습니다.</p>`;
     return;
   }
 
   filtered.forEach(p => {
-    let dDayTag = "";
     const deadlineDate = getEndDate(p.deadline);
-    const isDetailRef = !deadlineDate;
-
-    if (isDetailRef) {
-      dDayTag = `<span class="d-day" style="background:#f1f3f5; color:#666; border:1px solid #ddd;">기한확인</span>`;
+    let dDayHtml = "";
+    
+    if (!deadlineDate) {
+      dDayHtml = `<span class="d-day d-day-check">기한확인</span>`;
     } else {
-      const diffTime = deadlineDate - today;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      if (diffDays === 0) dDayTag = `<span class="d-day" style="background:#eccc68; color:#333;">오늘마감</span>`;
-      else if (diffDays > 0 && diffDays <= 7) dDayTag = `<span class="d-day" style="background:#ff4757; color:white;">D-${diffDays}</span>`;
-      else if (diffDays > 0) dDayTag = `<span class="d-day" style="background:#2e59d9; color:white;">D-${diffDays}</span>`;
-      else dDayTag = `<span class="d-day" style="background:#888; color:white;">종료</span>`;
+      const diff = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+      if (diff === 0) dDayHtml = `<span class="d-day d-day-urgent">오늘마감</span>`;
+      else if (diff > 0) dDayHtml = `<span class="d-day d-day-soon">D-${diff}</span>`;
+      else dDayHtml = `<span class="d-day" style="background:#bbb">종료</span>`;
     }
 
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-        <span style="color:${currentStatus === "마감" ? "#ff4444" : "#2e7d32"}; font-size:12px; font-weight:bold;">● ${currentStatus === "마감" ? "마감" : "진행중"}</span>
-        ${dDayTag}
+      <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+        <span style="font-size:12px; font-weight:bold; color:var(--lilac-accent)">● ${currentStatus === "마감" ? "마감" : "진행중"}</span>
+        ${dDayHtml}
       </div>
-      <h3 style="margin-bottom:10px; font-size:16px; line-height:1.4; font-weight:700;">${p.title}</h3>
-      <div style="font-size:13px; color:#666; line-height:1.6;">
-        <p>📍 지역: ${p.region}</p>
-        <p>📅 기한: <span style="${isDetailRef ? 'color:#d63031; font-weight:bold;' : ''}">${p.deadline}</span></p>
+      <h3 style="margin:0 0 10px 0; font-size:16px;">${p.title}</h3>
+      <div style="font-size:13px; color:#777;">
+        <p style="margin:2px 0;">📍 지역: ${p.region}</p>
+        <p style="margin:2px 0;">📅 기한: ${p.deadline}</p>
       </div>
     `;
     card.onclick = () => openDetail(p);
@@ -116,10 +104,8 @@ function openDetail(p) {
   document.getElementById("detailTarget").textContent = p.region || "전국";
   document.getElementById("detailDeadline").textContent = p.deadline;
   document.getElementById("detailSource").textContent = p.source;
-  const detailLink = document.getElementById("detailLink");
-  detailLink.href = p.link;
-  detailLink.setAttribute("rel", "noreferrer noopener");
-  detailLink.setAttribute("target", "_blank");
+  const link = document.getElementById("detailLink");
+  link.href = p.link;
   document.getElementById("detailView").classList.remove("hidden");
 }
 
@@ -134,4 +120,4 @@ statusButtons.forEach(btn => {
   };
 });
 
-window.onload = init;
+init();
