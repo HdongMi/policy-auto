@@ -10,6 +10,7 @@ const toggleBtns = document.querySelectorAll('.toggle-btn');
 const detailView = document.getElementById('detailView');
 const searchInput = document.getElementById('searchInput');
 
+// 1. 랜딩 페이지 제어
 startBtn.onclick = () => {
     sessionStorage.setItem('visited', 'true');
     landingPage.style.opacity = '0';
@@ -26,11 +27,13 @@ if (sessionStorage.getItem('visited') === 'true') {
     fetchData();
 }
 
+// 2. 검색 이벤트
 searchInput.addEventListener('input', (e) => {
     searchQuery = e.target.value.toLowerCase();
     render();
 });
 
+// 3. 데이터 로드
 function fetchData() {
     listEl.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>데이터 로딩 중...</p>";
     fetch(`https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`)
@@ -41,6 +44,7 @@ function fetchData() {
         });
 }
 
+// 4. 렌더링
 function render() {
     listEl.innerHTML = "";
     const today = new Date();
@@ -76,16 +80,19 @@ function parseDate(str) {
     return null;
 }
 
+// 5. 모달 열기
 function openDetail(p) {
     document.getElementById("detailTitle").innerText = p.title;
     document.getElementById("detailTarget").innerText = p.region || "전국";
     document.getElementById("detailDeadline").innerText = p.deadline;
     document.getElementById("detailSource").innerText = p.source;
     document.getElementById("detailLink").href = p.link;
+    
     detailView.classList.remove("hidden");
     history.pushState({ page: "detail" }, "detail", "");
 }
 
+// 6. 모달 닫기 제어
 document.getElementById("backBtn").onclick = () => history.back();
 window.onpopstate = () => detailView.classList.add("hidden");
 
