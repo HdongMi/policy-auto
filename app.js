@@ -1,5 +1,5 @@
 let policies = [];
-let currentStatus = "접수중"; // 기본값 설정
+let currentStatus = "전체";
 
 const landingPage = document.getElementById('landingPage');
 const mainLayout = document.getElementById('mainLayout');
@@ -8,85 +8,63 @@ const listEl = document.getElementById('policyList');
 const statusButtons = document.querySelectorAll('.status-buttons button');
 const detailView = document.getElementById('detailView');
 
+// 1. 초기화 로직 (캐시 무시)
 function init() {
     const isVisited = sessionStorage.getItem('visited');
     if (isVisited === 'true') {
-        if (landingPage) landingPage.classList.add('hidden');
-        if (mainLayout) mainLayout.classList.remove('hidden');
-        fetchData();
-    }
-}
-
-if (startBtn) {
-    startBtn.onclick = () => {
-        sessionStorage.setItem('visited', 'true');
         landingPage.classList.add('hidden');
         mainLayout.classList.remove('hidden');
         fetchData();
-    };
+    }
 }
 
+startBtn.onclick = () => {
+    sessionStorage.setItem('visited', 'true');
+    landingPage.classList.add('hidden');
+    mainLayout.classList.remove('hidden');
+    fetchData();
+};
+
+// 2. 데이터 가져오기 (매번 새로운 URL로 인식하게 함)
 function fetchData() {
-    if (!listEl) return;
-    listEl.innerHTML = "<p style='text-align:center; padding:50px;'>로딩 중...</p>";
-    // 캐시 방지를 위해 타임스탬프 추가
-    fetch(`https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`)
+    listEl.innerHTML = "<div style='padding:20px; text-align:center;'>최신 공고 동기화 중...</div>";
+    
+    // URL 뒤에 매번 바뀌는 숫자를 붙여 브라우저 캐시를 완전히 무력화합니다.
+    const cacheBuster = new Date().getTime();
+    fetch(`https://HdongMi.github.io/policy-auto/policies.json?v=${cacheBuster}`)
         .then(res => res.json())
         .then(data => {
-            policies = data;
+            policies = [...data]; // 새 배열로 복사하여 참조 끊기
             render();
         })
         .catch(err => {
-            listEl.innerHTML = "<p style='text-align:center; padding:50px;'>데이터를 가져오지 못했습니다.</p>";
+            listEl.innerHTML = "데이터를 불러오는 데 실패했습니다.";
         });
 }
 
-function parseDate(str) {
-    if (!str || str === "상세참조" || str === "예산소진시") return null;
-    const dateStr = str.split('~')[1] || str;
-    const cleanStr = dateStr.replace(/[^0-9]/g, '');
-    if (cleanStr.length >= 8) {
-        return new Date(`${cleanStr.substr(0,4)}-${cleanStr.substr(4,2)}-${cleanStr.substr(6,2)}`);
-    }
-    return null;
-}
-
-// 상세 페이지 열기 (핵심 수정 부분)
+// 3. 상세 페이지 열기 (이전 링크 잔상 제거)
 function openDetail(p) {
+    // 텍스트 교체
     document.getElementById("detailTitle").innerText = p.title;
-    document.getElementById("detailTarget").innerText = p.region || "전국";
+    document.getElementById("detailTarget").innerText = p.region;
     document.getElementById("detailDeadline").innerText = p.deadline;
-    document.getElementById("detailSource").innerText = p.source || "중소벤처기업부";
+    document.getElementById("detailSource").innerText = p.source;
 
-    const linkBtn = document.getElementById("detailLink");
+    // [핵심] 기존 버튼을 삭제하고 새로 만듭니다. (이전 링크가 남을 공간을 안 줌)
+    const oldBtn = document.getElementById("detailLink");
+    const newBtn = oldBtn.cloneNode(true); // 버튼 복제
     
-    // [중요] 기존 링크 정보를 완전히 초기화하기 위해 버튼 재생성 기법 사용
-    const newLinkBtn = linkBtn.cloneNode(true);
-    linkBtn.parentNode.replaceChild(newLinkBtn, linkBtn);
-
-    if (p.link && p.link.length > 10) {
-        newLinkBtn.href = p.link;
-        newLinkBtn.target = "_blank";
-        newLinkBtn.rel = "noopener noreferrer";
-        newLinkBtn.style.display = "block";
-        newLinkBtn.innerText = "공식 공고 페이지로 이동";
-        newLinkBtn.style.background = "#8e82bd";
-        newLinkBtn.style.pointerEvents = "auto";
-        newLinkBtn.style.opacity = "1";
-    } else {
-        newLinkBtn.href = "#";
-        newLinkBtn.innerText = "상세 링크 준비 중";
-        newLinkBtn.style.background = "#ccc";
-        newLinkBtn.style.pointerEvents = "none";
-        newLinkBtn.style.opacity = "0.6";
-    }
+    newBtn.href = p.link; // 새로운 링크 주입
+    newBtn.target = "_blank";
+    
+    // 기존 버튼을 새 버튼으로 완전히 교체 (이벤트와 href 초기화)
+    oldBtn.parentNode.replaceChild(newBtn, oldBtn);
 
     detailView.classList.remove("hidden");
     window.scrollTo(0, 0);
 }
 
 function render() {
-    if (!listEl) return;
     listEl.innerHTML = "";
     const today = new Date();
     today.setHours(0,0,0,0);
@@ -95,28 +73,31 @@ function render() {
         const deadlineDate = parseDate(p.deadline);
         const isClosed = deadlineDate && deadlineDate < today;
         
-        // 필터링 로직 보정
         if (currentStatus === "전체") return true;
         return currentStatus === "마감" ? isClosed : !isClosed;
     });
 
-    if (filtered.length === 0) {
-        listEl.innerHTML = "<p style='text-align:center; padding:50px;'>해당하는 공고가 없습니다.</p>";
-        return;
-    }
-
-    filtered.forEach(p => {
+    filtered.forEach((p, index) => {
         const card = document.createElement("div");
         card.className = "card";
-        card.innerHTML = `
-            <h3>${p.title}</h3>
-            <p>📍 ${p.region} | 📅 ${p.deadline}</p>
-        `;
+        // 고유 ID 부여로 꼬임 방지
+        card.dataset.id = index; 
+        card.innerHTML = `<h3>${p.title}</h3><p>${p.region} | ${p.deadline}</p>`;
         
-        // 클로저 이슈 방지를 위해 함수를 별도로 호출
-        card.onclick = () => openDetail(p);
+        // 클릭 시 해당 데이터(p)를 정확히 전달
+        card.onclick = (e) => {
+            e.preventDefault();
+            openDetail(p);
+        };
         listEl.appendChild(card);
     });
+}
+
+function parseDate(str) {
+    if (!str || str === "상세참조") return null;
+    const dateStr = str.split('~')[1] || str;
+    const cleanStr = dateStr.replace(/[^0-9]/g, '');
+    return cleanStr.length >= 8 ? new Date(`${cleanStr.substr(0,4)}-${cleanStr.substr(4,2)}-${cleanStr.substr(6,2)}`) : null;
 }
 
 document.getElementById("backBtn").onclick = () => {
@@ -132,5 +113,4 @@ statusButtons.forEach(btn => {
     };
 });
 
-// 초기화 실행
 init();
