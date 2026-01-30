@@ -103,3 +103,22 @@ function parseDate(str) {
 }
 
 function openDetail(p) {
+    document.getElementById("detailTitle").innerText = p.title;
+    document.getElementById("detailTarget").innerText = p.region || "전국";
+    document.getElementById("detailDeadline").innerText = p.deadline;
+    document.getElementById("detailSource").innerText = p.source;
+    document.getElementById("detailLink").href = p.link;
+    detailView.classList.remove("hidden");
+    window.scrollTo(0, 0);
+}
+
+document.getElementById("backBtn").onclick = () => detailView.classList.add("hidden");
+
+toggleBtns.forEach(btn => {
+    btn.onclick = () => {
+        toggleBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentStatus = btn.dataset.status;
+        render();
+    };
+});
