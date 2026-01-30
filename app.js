@@ -8,13 +8,18 @@ const listEl = document.getElementById('policyList');
 const regionFilter = document.getElementById('regionFilter');
 const statusButtons = document.querySelectorAll('.status-buttons button');
 
-// 1. 랜딩 페이지 -> 메인 이동
+// 1. 랜딩 페이지 -> 메인 이동 함수 (재사용 가능하게 분리)
+function enterMain() {
+  landingPage.classList.add('hidden');
+  mainLayout.classList.remove('hidden');
+  fetchData();
+}
+
+// 시작 버튼 클릭 시
 startBtn.addEventListener('click', () => {
   landingPage.style.opacity = '0';
   setTimeout(() => {
-    landingPage.classList.add('hidden');
-    mainLayout.classList.remove('hidden');
-    fetchData(); 
+    enterMain();
   }, 500);
 });
 
@@ -123,3 +128,14 @@ statusButtons.forEach(btn => {
     render();
   };
 });
+
+/** * 💡 핵심 해결사: URL 파라미터 체크 
+ * info.html에서 ?start=true 를 달고 오면 
+ * 스플래시 화면을 건너뛰고 바로 메인을 띄웁니다.
+ */
+window.onload = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('start') === 'true') {
+    enterMain();
+  }
+};
