@@ -11,21 +11,18 @@ const statusButtons = document.querySelectorAll('.status-buttons button');
 // 1. 초기화 함수: 방문 여부 체크
 function init() {
   const isVisited = sessionStorage.getItem('visited');
-
   if (isVisited === 'true') {
-    // 이미 방문한 경우: 바로 메인으로
     landingPage.classList.add('hidden');
     mainLayout.classList.remove('hidden');
     fetchData();
   } else {
-    // 처음 방문인 경우: 스플래시 보여주기
     landingPage.style.display = 'flex';
   }
 }
 
 // 2. 시작 버튼 클릭 핸들러
 startBtn.addEventListener('click', () => {
-  sessionStorage.setItem('visited', 'true'); // 방문 기록 저장
+  sessionStorage.setItem('visited', 'true');
   landingPage.style.opacity = '0';
   setTimeout(() => {
     landingPage.classList.add('hidden');
@@ -51,6 +48,19 @@ function fetchData() {
     });
 }
 
+// 💡 날짜 문자열에서 최종 종료일을 뽑아내는 헬퍼 함수
+function getEndDate(deadlineStr) {
+  if (!deadlineStr || deadlineStr === "상세참조") return null;
+  // "~" 가 있으면 뒤쪽 날짜 사용, 없으면 전체 사용
+  const parts = deadlineStr.split('~');
+  const target = parts.length > 1 ? parts[1] : parts[0];
+  const dateStr = target.replace(/[^0-9]/g, ''); // 숫자만 추출
+  if (dateStr.length >= 8) {
+    return new Date(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
+  }
+  return null;
+}
+
 // 4. 목록 그리기
 function render() {
   listEl.innerHTML = "";
@@ -62,12 +72,9 @@ function render() {
     const regionMatch = (selectedRegion === "전체" || p.region.includes(selectedRegion) || p.region === "전국");
     
     let isClosed = false;
-    if (p.deadline && p.deadline !== "상세참조") {
-      const dateStr = p.deadline.replace(/[^0-9]/g, '');
-      if (dateStr.length >= 8) {
-        const deadlineDate = new Date(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
-        isClosed = !isNaN(deadlineDate) && deadlineDate < today;
-      }
+    const deadlineDate = getEndDate(p.deadline);
+    if (deadlineDate) {
+      isClosed = deadlineDate < today;
     }
 
     if (currentStatus === "마감") return regionMatch && isClosed;
@@ -81,22 +88,19 @@ function render() {
 
   filtered.forEach(p => {
     let dDayTag = "";
-    const isDetailRef = p.deadline === "상세참조" || !p.deadline;
+    const deadlineDate = getEndDate(p.deadline);
+    const isDetailRef = !deadlineDate;
 
     if (isDetailRef) {
       dDayTag = `<span class="d-day" style="background:#f1f3f5; color:#666; border:1px solid #ddd;">기한확인</span>`;
     } else {
-      const dateStr = p.deadline.replace(/[^0-9]/g, '');
-      const deadlineDate = new Date(`${dateStr.substring(0,4)}-${dateStr.substring(4,6)}-${dateStr.substring(6,8)}`);
+      const diffTime = deadlineDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       
-      if (!isNaN(deadlineDate)) {
-        const diffTime = deadlineDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays === 0) dDayTag = `<span class="d-day" style="background:#eccc68; color:#333;">오늘마감</span>`;
-        else if (diffDays > 0 && diffDays <= 7) dDayTag = `<span class="d-day" style="background:#ff4757; color:white;">D-${diffDays}</span>`;
-        else if (diffDays > 0) dDayTag = `<span class="d-day" style="background:#2e59d9; color:white;">D-${diffDays}</span>`;
-      }
+      if (diffDays === 0) dDayTag = `<span class="d-day" style="background:#eccc68; color:#333;">오늘마감</span>`;
+      else if (diffDays > 0 && diffDays <= 7) dDayTag = `<span class="d-day" style="background:#ff4757; color:white;">D-${diffDays}</span>`;
+      else if (diffDays > 0) dDayTag = `<span class="d-day" style="background:#2e59d9; color:white;">D-${diffDays}</span>`;
+      else dDayTag = `<span class="d-day" style="background:#888; color:white;">종료</span>`;
     }
 
     const card = document.createElement("div");
@@ -141,5 +145,4 @@ statusButtons.forEach(btn => {
   };
 });
 
-// 페이지 로드 시 실행
 window.onload = init;
