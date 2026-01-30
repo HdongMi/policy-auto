@@ -1,5 +1,6 @@
 let policies = [];
 let currentStatus = "전체";
+let searchQuery = "";
 
 const landingPage = document.getElementById('landingPage');
 const mainLayout = document.getElementById('mainLayout');
@@ -7,6 +8,7 @@ const startBtn = document.getElementById('startBtn');
 const listEl = document.getElementById('policyList');
 const toggleBtns = document.querySelectorAll('.toggle-btn');
 const detailView = document.getElementById('detailView');
+const searchInput = document.getElementById('searchInput');
 
 // 1. 랜딩 페이지 제어
 startBtn.onclick = () => {
@@ -19,28 +21,30 @@ startBtn.onclick = () => {
     }, 500);
 };
 
-// 방문 이력 있으면 바로 메인으로
 if (sessionStorage.getItem('visited') === 'true') {
     landingPage.classList.add('hidden');
     mainLayout.classList.remove('hidden');
     fetchData();
 }
 
-// 2. 데이터 가져오기
+// 2. 검색 이벤트
+searchInput.addEventListener('input', (e) => {
+    searchQuery = e.target.value.toLowerCase();
+    render();
+});
+
+// 3. 데이터 로드
 function fetchData() {
-    listEl.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>공고를 불러오는 중입니다...</p>";
+    listEl.innerHTML = "<p style='text-align:center; padding:50px; color:#999;'>데이터 로딩 중...</p>";
     fetch(`https://HdongMi.github.io/policy-auto/policies.json?t=${new Date().getTime()}`)
         .then(res => res.json())
         .then(data => {
             policies = data;
             render();
-        })
-        .catch(err => {
-            listEl.innerHTML = "<p style='text-align:center; padding:50px;'>데이터 로드 실패</p>";
         });
 }
 
-// 3. 리스트 렌더링
+// 4. 렌더링 (필터 + 검색 적용)
 function render() {
     listEl.innerHTML = "";
     const today = new Date();
@@ -49,11 +53,16 @@ function render() {
     const filtered = policies.filter(p => {
         const deadlineDate = parseDate(p.deadline);
         const isClosed = deadlineDate && deadlineDate < today;
-        return currentStatus === "마감" ? isClosed : !isClosed;
+        const statusMatch = (currentStatus === "마감" ? isClosed : !isClosed);
+        
+        const searchText = (p.title + p.region).toLowerCase();
+        const searchMatch = searchText.includes(searchQuery);
+
+        return statusMatch && searchMatch;
     });
 
     if (filtered.length === 0) {
-        listEl.innerHTML = "<p style='text-align:center; padding:100px; color:#bbb;'>공고가 없습니다.</p>";
+        listEl.innerHTML = `<p style='text-align:center; padding:100px; color:#bbb;'>검색 결과가 없습니다.</p>`;
         return;
     }
 
@@ -80,24 +89,19 @@ function render() {
             <p>📍 ${p.region}</p>
             <p>📅 ${p.deadline}</p>
         `;
-        
         card.onclick = () => openDetail(p);
         listEl.appendChild(card);
     });
 }
 
-// 4. 날짜 파싱
 function parseDate(str) {
     if (!str || str === "상세참조") return null;
     const dateStr = str.split('~')[1] || str;
     const cleanStr = dateStr.replace(/[^0-9]/g, '');
-    if (cleanStr.length >= 8) {
-        return new Date(`${cleanStr.substr(0,4)}-${cleanStr.substr(4,2)}-${cleanStr.substr(6,2)}`);
-    }
+    if (cleanStr.length >= 8) return new Date(`${cleanStr.substr(0,4)}-${cleanStr.substr(4,2)}-${cleanStr.substr(6,2)}`);
     return null;
 }
 
-// 5. 상세 모달 제어
 function openDetail(p) {
     document.getElementById("detailTitle").innerText = p.title;
     document.getElementById("detailTarget").innerText = p.region || "전국";
@@ -110,7 +114,6 @@ function openDetail(p) {
 
 document.getElementById("backBtn").onclick = () => detailView.classList.add("hidden");
 
-// 6. 토글 필터 제어
 toggleBtns.forEach(btn => {
     btn.onclick = () => {
         toggleBtns.forEach(b => b.classList.remove("active"));
