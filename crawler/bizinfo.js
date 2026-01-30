@@ -9,7 +9,7 @@ async function run() {
   const API_URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=20260101`;
 
   try {
-    console.log(`📡 [1/3] 중기부 리스트 1~5페이지 확보 중...`);
+    console.log(`📡 [1/2] 중기부 리스트 1~5페이지 확보 중...`);
     const pageIndices = [1, 2, 3, 4, 5];
     const pageRequests = pageIndices.map(page => 
       fetch(`https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310&pageIndex=${page}`, {
@@ -28,7 +28,7 @@ async function run() {
       });
     });
 
-    console.log(`📡 [2/3] API 데이터 대조 및 상세 날짜 정밀 수집...`);
+    console.log(`📡 [2/2] 상세 날짜 정밀 수집 시작 (시작일만 있는 케이스 포함)...`);
     const apiRes = await fetch(API_URL);
     const apiText = await apiRes.text();
 
@@ -66,28 +66,21 @@ async function run() {
           });
           const detailHtml = await detailRes.text();
           
-          // 🔍 정밀 날짜 추출 로직: 모든 태그 제거 후 텍스트만 추출
-          const plainText = detailHtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
+          // 🔍 모든 태그를 제거하고 공백을 최소화한 텍스트로 변환
+          const cleanText = detailHtml.replace(/<[^>]*>/g, '').replace(/\s+/g, '');
 
-          // 패턴 1: 0000-00-00 ~ 0000-00-00 (가장 일반적)
-          const pattern1 = /신청기간\s*(\d{4}-\d{2}-\d{2}\s*~\s*\d{4}-\d{2}-\d{2})/;
-          // 패턴 2: 연월일 형식 (0000.00.00 ~ 0000.00.00)
-          const pattern2 = /신청기간\s*(\d{4}\.\d{2}\.\d{2}\s*~\s*\d{4}\.\d{2}\.\d{2})/;
-          // 패턴 3: 글자 사이 공백 무시
-          const pattern3 = /(\d{4}-\d{2}-\d{2})\s*~\s*(\d{4}-\d{2}-\d{2})/;
+          // 🔥 개선된 정규식: "신청기간" 뒤에 오는 날짜와 기호를 최대한 많이 긁어옴
+          // YYYY-MM-DD 형식 뒤에 ~가 오고 그 뒤에 날짜가 오거나 안 오거나 모두 허용
+          const dateRegex = /신청기간(\d{4}-\d{2}-\d{2}(?:\s*~\s*(?:\d{4}-\d{2}-\d{2})?)?)/;
+          const dateMatch = cleanText.match(dateRegex);
 
-          const match1 = plainText.match(pattern1);
-          const match2 = plainText.match(pattern2);
-          const match3 = plainText.match(pattern3);
-
-          if (match1) deadline = match1[1].trim();
-          else if (match2) deadline = match2[1].replace(/\./g, '-').trim();
-          else if (match3) deadline = `${match3[1]} ~ ${match3[2]}`;
-
-          if (deadline !== "상세참조") {
-            console.log(`✅ [날짜추출] ${deadline} | ${title.substring(0, 15)}...`);
+          if (dateMatch && dateMatch[1]) {
+            deadline = dateMatch[1].trim();
+            // 끝에 ~만 남은 경우 "상시" 또는 그대로 표시
+            if (deadline.endsWith('~')) deadline += " 예산 소진 시";
+            console.log(`✅ [성공] ${deadline} | ${title.substring(0, 15)}`);
           } else {
-            console.log(`⚠️ [날짜미발견] ${title.substring(0, 15)}...`);
+            console.log(`⚠️ [미발견] ${title.substring(0, 15)}`);
           }
         } catch (e) {
           console.log(`❌ 접속실패: ${title.substring(0, 10)}`);
@@ -105,7 +98,7 @@ async function run() {
 
     const filteredPolicies = newPolicies.filter(p => p !== null);
     fs.writeFileSync(filePath, JSON.stringify(filteredPolicies, null, 2), "utf8");
-    console.log(`\n✨ [최종완료] 총 ${filteredPolicies.length}건 업데이트 완료.`);
+    console.log(`\n✨ 업데이트 완료!`);
 
   } catch (error) {
     console.error("❌ 오류:", error.message);
