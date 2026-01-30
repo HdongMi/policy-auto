@@ -6,13 +6,11 @@
   <title>소상공인 정책 알리미</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* D-Day 배지 스타일 */
-    .d-day {
-      padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;
-    }
-    .nav-tabs {
-      display: flex; justify-content: center; gap: 10px; margin-bottom: 20px;
-    }
+    /* 초기 로딩 시 깜빡임 방지를 위해 landing은 기본 숨김 */
+    .landing { display: none; opacity: 1; transition: opacity 0.5s; }
+    .hidden { display: none !important; }
+    .d-day { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+    .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
     .tab-btn {
       padding: 10px 15px; background: #f1f3f5; border-radius: 8px; 
       text-decoration: none; color: #666; font-weight: bold; font-size: 0.9rem;
@@ -36,7 +34,7 @@
       <h1>소상공인 정책 공고</h1>
       
       <div class="nav-tabs">
-        <a href="index.html?start=true" class="tab-btn active">📋 공고 목록</a>
+        <a href="index.html" class="tab-btn active">📋 공고 목록</a>
         <a href="info.html" class="tab-btn">💡 지원자격 안내</a>
       </div>
 
@@ -92,15 +90,5 @@
   </div>
 
   <script src="app.js"></script>
-  <script>
-    // info.html에서 돌아올 때 랜딩페이지 스킵 로직
-    if (location.search.includes('start=true')) {
-      document.addEventListener('DOMContentLoaded', () => {
-        document.getElementById('landingPage').classList.add('hidden');
-        document.getElementById('mainLayout').classList.remove('hidden');
-        if (typeof fetchData === 'function') fetchData();
-      });
-    }
-  </script>
 </body>
 </html>
