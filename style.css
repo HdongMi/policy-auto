@@ -7,7 +7,18 @@
     --font-main: 'Pretendard', sans-serif;
 }
 
-body { font-family: var(--font-main); margin: 0; background: #f9f8ff; color: #333; word-break: keep-all; -webkit-font-smoothing: antialiased; }
+/* 기본 설정 */
+* { box-sizing: border-box; } /* 모든 요소의 크기 계산을 동일하게 맞춤 */
+
+body { 
+    font-family: var(--font-main); 
+    margin: 0; 
+    background: #f9f8ff; 
+    color: #333; 
+    word-break: keep-all; 
+    -webkit-font-smoothing: antialiased; 
+}
+
 .hidden { display: none !important; }
 
 /* 랜딩 페이지 */
@@ -16,30 +27,73 @@ body { font-family: var(--font-main); margin: 0; background: #f9f8ff; color: #33
 .subtitle { color: #777; line-height: 1.5; margin-bottom: 30px; }
 .start-btn { padding: 18px 50px; background: var(--lilac); color: white; border: none; border-radius: 35px; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 10px 20px rgba(142, 130, 189, 0.2); }
 
-/* 헤더 & 검색창 */
-.header { background: white; padding: 40px 20px 20px; text-align: center; border-bottom: 1px solid #f0f0f5; position: sticky; top: 0; z-index: 50; }
+/* 헤더 - 고정 해제(sticky 삭제) */
+.header { 
+    background: white; 
+    padding: 40px 20px 20px; 
+    text-align: center; 
+    border-bottom: 1px solid #f0f0f5; 
+}
 .header h1 { font-size: 22px; color: var(--lilac-dark); margin-bottom: 25px; }
+
+/* 탭 버튼 */
 .nav-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
 .tab-btn { padding: 10px 22px; border-radius: 14px; border: 1px solid #e0e0e5; text-decoration: none; color: #888; font-size: 14px; font-weight: 600; }
 .tab-btn.active { background: var(--lilac-soft); border-color: var(--lilac); color: var(--lilac); }
 
+/* 검색창 */
 .search-container { max-width: 450px; margin: 0 auto 20px; padding: 0 20px; }
-#searchInput { width: 100%; padding: 12px 20px; border-radius: 25px; border: 2px solid var(--lilac-soft); background: #fdfdff; font-family: var(--font-main); font-size: 14px; outline: none; transition: 0.3s; box-sizing: border-box; }
+#searchInput { width: 100%; padding: 12px 20px; border-radius: 25px; border: 2px solid var(--lilac-soft); background: #fdfdff; font-family: var(--font-main); font-size: 14px; outline: none; transition: 0.3s; }
 
-/* 토글 필터 */
+/* 토글 필터 - 사이즈 정밀 교정 */
 .filters { display: flex; justify-content: center; margin-bottom: 10px; }
-.toggle-container { position: relative; display: flex; background: #eeeef5; border-radius: 30px; padding: 4px; width: 180px; height: 40px; }
-.toggle-btn { flex: 1; border: none; background: none; z-index: 2; cursor: pointer; font-weight: 700; color: #999; font-size: 14px; }
-.toggle-btn.active { color: white; }
-.toggle-slider { position: absolute; top: 4px; left: 4px; width: calc(50% - 4px); height: calc(100% - 8px); background: var(--lilac); border-radius: 25px; transition: 0.3s; z-index: 1; }
-.toggle-container:has(.toggle-btn[data-status="마감"].active) .toggle-slider { transform: translateX(100%); }
+.toggle-container { 
+    position: relative; 
+    display: flex; 
+    background: #eeeef5; 
+    border-radius: 30px; 
+    padding: 4px; 
+    width: 200px; /* 가시성을 위해 약간 넓힘 */
+    height: 44px; 
+}
+.toggle-btn { 
+    flex: 1; 
+    border: none; 
+    background: none; 
+    z-index: 2; 
+    cursor: pointer; 
+    font-weight: 700; 
+    color: #999; 
+    font-size: 14px; 
+    line-height: 36px; /* 텍스트 수직 중앙 정렬 */
+}
+.toggle-btn.active { color: white; transition: color 0.3s; }
+
+.toggle-slider { 
+    position: absolute; 
+    top: 4px; 
+    left: 4px; 
+    width: calc(50% - 4px); 
+    height: calc(100% - 8px); 
+    background: var(--lilac); 
+    border-radius: 25px; 
+    transition: transform 0.3s ease; 
+    z-index: 1; 
+}
+
+/* 슬라이더 위치 제어 (어긋나지 않도록 50%가 아닌 100% 이동으로 정확히 계산) */
+.toggle-container:has(.toggle-btn[data-status="마감"].active) .toggle-slider { 
+    transform: translateX(100%); 
+}
 
 /* 카드 리스트 */
 #policyList { padding: 20px; max-width: 650px; margin: 0 auto; }
 .card { background: white; border-radius: 20px; padding: 26px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.04); cursor: pointer; border: 1px solid #f0f0f5; transition: 0.2s; text-align: left; }
+.card:active { transform: scale(0.98); }
 .card h3 { margin: 0 0 12px 0; font-size: 19px; font-weight: 700; color: #222; }
+.card p { margin: 4px 0; font-size: 15px; color: #666; }
 
-/* 📱 상세 모달 (깔끔하게 슬라이드업 처리) */
+/* 상세 모달 */
 .detail { 
     position: fixed; inset: 0; background: white; padding: 40px 25px; z-index: 3000; overflow-y: auto;
     transform: translateY(100%); transition: transform 0.3s ease-out;
