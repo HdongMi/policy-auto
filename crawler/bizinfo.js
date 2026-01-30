@@ -6,42 +6,52 @@ import { parseStringPromise } from "xml2js";
 async function run() {
   const SERVICE_KEY = "e8e40ea23b405a5abba75382a331e61f9052570e9e95a7ca6cf5db14818ba22b";
   
-  // 1. 날짜 설정 (매우 중요: YYYYMMDD 형식)
-  // 오늘 기준으로 약 한 달 전 공고부터 가져오도록 설정합니다.
-  const date = new Date();
-  date.setMonth(date.getMonth() - 1); 
-  const startDate = date.toISOString().split('T')[0].replace(/-/g, ''); // 예: 20240420
+  // 1. 날짜 범위를 1년 전으로 아주 넓게 잡습니다. (데이터가 있는지 확인용)
+  const startDate = "20250101"; 
 
-  // 2. 파라미터에 pblancServiceStartDate 추가
-  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&returnType=json&pblancServiceStartDate=${startDate}`;
+  // 2. URL (returnType은 빼고 _type=json도 넣어보고 모든 시도를 다 함)
+  const URL = `https://apis.data.go.kr/1421000/mssBizService_v2/getbizList_v2?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=100&_type=json&pblancServiceStartDate=${startDate}`;
 
   const filePath = path.join(process.cwd(), "policies.json");
 
   try {
-    console.log(`📡 중소벤처기업부 API 접속 중... (검색시작일: ${startDate})`);
+    console.log(`📡 중기부 API 접속 중... (검색일: ${startDate}부터)`);
     const response = await fetch(URL);
     const text = await response.text();
 
     let itemsArray = [];
 
-    if (text.trim().startsWith("<?xml") || text.includes("<response>")) {
-      console.log("📝 XML 응답 감지, 파싱 시작...");
+    // XML/JSON 공통 처리 강화
+    if (text.includes("<item>")) {
+      console.log("📝 XML 응답 확인, 파싱 중...");
       const xmlData = await parseStringPromise(text);
       
-      // XML의 경우 경로가 매우 깊을 수 있으므로 단계별로 확인
-      const body = xmlData?.response?.body?.[0];
-      const itemsContainer = body?.items?.[0];
+      // XML 경로를 최대한 유연하게 탐색 (어떤 계층에 있든 item을 찾아냄)
+      const findItems = (obj) => {
+        if (obj.item) return obj.item;
+        for (const key in obj) {
+          if (typeof obj[key] === "object") {
+            const result = findItems(obj[key]);
+            if (result) return result;
+          }
+        }
+        return null;
+      };
       
-      if (itemsContainer && itemsContainer.item) {
-        itemsArray = Array.isArray(itemsContainer.item) ? itemsContainer.item : [itemsContainer.item];
-      }
+      const rawItems = findItems(xmlData);
+      itemsArray = Array.isArray(rawItems) ? rawItems : (rawItems ? [rawItems] : []);
     } else {
-      const data = JSON.parse(text);
-      itemsArray = data.response?.body?.items || [];
+      try {
+        const data = JSON.parse(text);
+        itemsArray = data.response?.body?.items || [];
+      } catch(e) {
+        console.log("⚠️ JSON 파싱 실패, 원본 데이터 확인이 필요합니다.");
+      }
     }
 
     if (itemsArray.length === 0) {
-      console.log("⚠️ 데이터를 찾지 못했습니다. 서버 응답:", text.substring(0, 200));
+      console.log("⚠️ 여전히 데이터가 0건입니다.");
+      console.log("📝 서버가 보낸 원본 데이터(일부):", text.substring(0, 500));
       return;
     }
 
@@ -77,7 +87,7 @@ async function run() {
     }, []);
 
     fs.writeFileSync(filePath, JSON.stringify(unique, null, 2), "utf8");
-    console.log(`✅ 성공! ${newPolicies.length}건을 가져와 최종 ${unique.length}건 저장됨.`);
+    console.log(`✅ 드디어 성공! ${newPolicies.length}건을 가져왔습니다.`);
 
   } catch (error) {
     console.error("❌ 오류 발생:", error.message);
