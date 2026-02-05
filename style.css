@@ -4,11 +4,10 @@
     --lilac: #8e82bd;
     --lilac-soft: #eeebff;
     --lilac-dark: #6a5da1;
-    --lilac-bg: #e8e3ff; /* 배경색 농도를 더 높여 보라색을 확실히 강조 */
+    --lilac-bg: #e8e3ff; 
     --font-main: 'Pretendard', sans-serif;
 }
 
-/* 전체 배경 고정 */
 body { 
     font-family: var(--font-main); 
     margin: 0; 
@@ -20,7 +19,7 @@ body {
 
 .hidden { display: none !important; }
 
-/* [스플래시 화면] - 깔끔한 흰색 유지 */
+/* [스플래시 화면] */
 .landing { 
     position: fixed; inset: 0; background: white; 
     display: flex; align-items: center; justify-content: center; 
@@ -59,13 +58,12 @@ body {
 .toggle-btn { flex: 1; border: none; background: none; z-index: 2; cursor: pointer; font-weight: 700; color: #999; font-size: 14px; }
 .toggle-btn.active { color: white; }
 
-/* 리스트 카드 중앙 정렬 */
 #policyList { padding: 20px; }
 .card { background: white; border-radius: 22px; padding: 25px; margin-bottom: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.03); border: 1px solid rgba(142, 130, 189, 0.1); cursor: pointer; }
 .card h3 { margin: 0 0 10px 0; font-size: 18px; color: #222; font-weight: 700; }
 .card p { color: #777; font-size: 14px; margin: 0; }
 
-/* [상세페이지 완전 중앙 정렬] */
+/* [상세페이지] */
 .detail { 
     position: fixed; inset: 0; 
     background-color: var(--lilac-bg) !important; 
@@ -78,11 +76,9 @@ body {
 
 .detail-container { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 15px; align-items: center; }
 
-/* 상세 항목 박스 중앙 정렬 */
 .detail-section { 
     width: 100%; background: white; padding: 22px; border-radius: 20px; 
-    text-align: center; /* 텍스트 정중앙 */
-    box-sizing: border-box; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    text-align: center; box-sizing: border-box; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 .detail-section strong { color: var(--lilac-dark); font-size: 14px; margin-bottom: 10px; display: block; letter-spacing: -0.5px; }
 .detail-section p { font-size: 18px; color: #333; margin: 0; font-weight: 700; }
@@ -93,3 +89,20 @@ body {
     text-decoration: none; font-weight: 700; font-size: 18px; margin-top: 25px; 
     box-shadow: 0 10px 20px rgba(142, 130, 189, 0.3);
 }
+
+/* [로딩 오버레이 전용 CSS] */
+.loading-overlay {
+    position: fixed; inset: 0;
+    background: rgba(232, 227, 255, 0.9);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 5000;
+}
+.loader-content { text-align: center; }
+.spinner {
+    width: 48px; height: 48px;
+    border: 5px solid white; border-top: 5px solid var(--lilac);
+    border-radius: 50%; animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+.loader-content p { color: var(--lilac-dark); font-weight: 700; font-size: 16px; margin: 0; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
