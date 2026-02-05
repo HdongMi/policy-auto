@@ -4,7 +4,10 @@ let searchQuery = "";
 
 function init() {
     setupEventListeners();
+    // 세션 기록이 있으면 스플래시 즉시 숨김
     if (sessionStorage.getItem('visited') === 'true') {
+        const lp = document.getElementById('landingPage');
+        if (lp) lp.style.display = 'none';
         showMainLayout();
     }
     fetchData().then(() => checkUrlParam());
@@ -49,12 +52,10 @@ function showDetailUI(p) {
     const linkEl = document.getElementById("detailLink");
     linkEl.href = p.link;
 
-    // 공고 원문 확인하기 클릭 시 로딩바 표시 기능 추가
     linkEl.onclick = () => {
         const loader = document.getElementById('loadingOverlay');
         if(loader) {
             loader.classList.remove('hidden');
-            // 새 창 이동 후 돌아올 때를 대비해 3초 뒤 자동 숨김
             setTimeout(() => { loader.classList.add('hidden'); }, 3000);
         }
     };
@@ -66,9 +67,7 @@ function showDetailUI(p) {
 }
 
 window.onpopstate = (e) => {
-    // 뒤로가기 시 로딩바가 떠 있다면 제거
     document.getElementById('loadingOverlay')?.classList.add('hidden');
-    
     if (e.state && e.state.view === 'detail') showDetailUI(e.state.policy);
     else showMainLayout();
 };
@@ -103,10 +102,20 @@ function parseDate(str) {
 }
 
 function setupEventListeners() {
+    // [수정됨] 시작 버튼 클릭 시 페이드 아웃 로직 적용
     document.getElementById('startBtn').onclick = () => {
+        const landing = document.getElementById('landingPage');
         sessionStorage.setItem('visited', 'true');
-        showMainLayout();
+        
+        // 페이드 아웃 애니메이션 시작
+        landing.classList.add('fade-out');
+        
+        // 애니메이션(0.5초) 후 레이아웃 전환
+        setTimeout(() => {
+            showMainLayout();
+        }, 500);
     };
+
     document.getElementById('searchInput').oninput = (e) => {
         searchQuery = e.target.value;
         render();
