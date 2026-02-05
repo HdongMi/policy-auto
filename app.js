@@ -45,7 +45,19 @@ function showDetailUI(p) {
     document.getElementById("detailTarget").innerText = p.region;
     document.getElementById("detailDeadline").innerText = p.deadline;
     document.getElementById("detailSource").innerText = p.source;
-    document.getElementById("detailLink").href = p.link;
+    
+    const linkEl = document.getElementById("detailLink");
+    linkEl.href = p.link;
+
+    // 공고 원문 확인하기 클릭 시 로딩바 표시 기능 추가
+    linkEl.onclick = () => {
+        const loader = document.getElementById('loadingOverlay');
+        if(loader) {
+            loader.classList.remove('hidden');
+            // 새 창 이동 후 돌아올 때를 대비해 3초 뒤 자동 숨김
+            setTimeout(() => { loader.classList.add('hidden'); }, 3000);
+        }
+    };
 
     document.getElementById('mainLayout')?.classList.add('hidden');
     document.getElementById('detailView')?.classList.remove('hidden');
@@ -54,6 +66,9 @@ function showDetailUI(p) {
 }
 
 window.onpopstate = (e) => {
+    // 뒤로가기 시 로딩바가 떠 있다면 제거
+    document.getElementById('loadingOverlay')?.classList.add('hidden');
+    
     if (e.state && e.state.view === 'detail') showDetailUI(e.state.policy);
     else showMainLayout();
 };
