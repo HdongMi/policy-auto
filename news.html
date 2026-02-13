@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>실시간 정책 뉴스 - 소상공인 정책 알리미</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* 뉴스 페이지 전용 추가 스타일 */
+    .news-card {
+      background: white;
+      padding: 15px;
+      margin-bottom: 12px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .news-card:active { transform: scale(0.98); }
+    .news-tag {
+      display: inline-block;
+      background: #eef2ff;
+      color: #4f46e5;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .news-title { font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #333; }
+    .news-date { font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <h1>실시간 정책 뉴스</h1>
+    <nav class="nav-tabs">
+      <a href="info.html" class="tab-btn">💡 지원자격 안내</a>
+      <a href="index.html" class="tab-btn">📋 공고 목록</a>
+      <a href="news.html" class="tab-btn active">📰 실시간 뉴스 보기</a>
+    </nav>
+  </header>
+
+  <main id="newsList" style="padding: 15px;">
+    <p style="text-align: center; color: #666; margin-top: 50px;">최신 뉴스를 불러오는 중입니다...</p>
+  </main>
+
+  <script>
+    // RSS API 등을 활용하여 실제 뉴스를 불러오는 기능을 구현할 수 있습니다.
+    // 여기서는 예시 데이터를 출력하는 스크립트를 작성합니다.
+    document.addEventListener('DOMContentLoaded', () => {
+      const newsList = document.getElementById('newsList');
+      
+      // 샘플 뉴스 데이터 (추후 실제 API 연동 가능)
+      const sampleNews = [
+        { title: "2026년 소상공인 전기요금 특별지원 사업 공고", date: "2026-02-13", link: "#", category: "지원금" },
+        { title: "중기부, 전통시장 디지털 전환을 위한 특성화시장 육성", date: "2026-02-12", link: "#", category: "정책뉴스" },
+        { title: "지역화폐 발행 규모 확대 및 할인율 상향 조정 안내", date: "2026-02-11", link: "#", category: "공고" },
+        { title: "소상공인 고용보험료 지원 대상 대폭 확대", date: "2026-02-10", link: "#", category: "보험/복지" }
+      ];
+
+      function renderNews() {
+        newsList.innerHTML = '';
+        sampleNews.forEach(news => {
+          const card = document.createElement('div');
+          card.className = 'news-card';
+          card.onclick = () => window.open(news.link, '_blank');
+          card.innerHTML = `
+            <span class="news-tag">${news.category}</span>
+            <div class="news-title">${news.title}</div>
+            <div class="news-date">${news.date}</div>
+          `;
+          newsList.appendChild(card);
+        });
+      }
+
+      // 0.5초 후 렌더링 (로딩 효과)
+      setTimeout(renderNews, 500);
+    });
+  </script>
+</body>
+</html>
