@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>관심 공고 - 소상공인 정책체크</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        /* 관심 공고 페이지 전용 추가 스타일 */
+        .fav-bundle { padding: 15px; }
+        .fav-item {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            border: 1px solid #f1f5f9;
+        }
+        .fav-info { cursor: pointer; }
+        .fav-title {
+            font-size: 17px;
+            font-weight: 800;
+            color: #1e293b;
+            line-height: 1.4;
+            margin-bottom: 10px;
+            padding-right: 30px; /* 삭제 버튼 공간 */
+        }
+        .fav-details {
+            font-size: 13px;
+            color: #64748b;
+            line-height: 1.6;
+        }
+        .fav-details span {
+            display: block;
+            margin-bottom: 2px;
+        }
+        .remove-icon-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #f1f5f9;
+            color: #94a3b8;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .remove-icon-btn:active {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #94a3b8;
+        }
+        .empty-state .icon {
+            font-size: 50px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 15px;
+            color: #3b82f6;
+            font-weight: 600;
+            text-decoration: none;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <h1>소상공인 정책체크</h1>
+        <nav class="nav-tabs">
+            <a href="info.html" class="tab-btn">💡 지원자격 안내</a>
+            <a href="index.html" class="tab-btn">📋 공고 목록</a>
+            <a href="news.html" class="tab-btn">📰 실시간 뉴스 보기</a>
+            <a href="favorites.html" class="tab-btn active">⭐ 관심 공고</a>
+        </nav>
+    </header>
+
+    <div class="section-title" style="padding: 20px 15px 5px 15px; font-weight: bold; color: #475569;">내가 저장한 정책</div>
+    
+    <div id="fav-list" class="fav-bundle">
+        </div>
+
+    <script>
+        // 1. 관심 목록을 화면에 그리는 함수
+        function renderFavorites() {
+            const favContainer = document.getElementById('fav-list');
+            const favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
+
+            // 데이터가 없을 경우
+            if (favorites.length === 0) {
+                favContainer.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">⭐</span>
+                        <p>아직 저장된 공고가 없습니다.<br>나에게 필요한 정책을 담아보세요!</p>
+                        <a href="index.html" class="back-link">공고 보러가기 →</a>
+                    </div>
+                `;
+                return;
+            }
+
+            // 데이터가 있을 경우 리스트 생성
+            favContainer.innerHTML = '';
+            favorites.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'fav-item';
+                itemEl.innerHTML = `
+                    <button class="remove-icon-btn" onclick="deleteFavorite('${item.id}')">×</button>
+                    <div class="fav-info" onclick="window.open('${item.link}', '_blank')">
+                        <div class="fav-title">${item.title}</div>
+                        <div class="fav-details">
+                            <span>📍 지역: ${item.target}</span>
+                            <span>📅 마감: ${item.deadline}</span>
+                            <span style="margin-top:8px; color:#3b82f6; font-size:12px;">클릭하여 원문 보기</span>
+                        </div>
+                    </div>
+                `;
+                favContainer.appendChild(itemEl);
+            });
+        }
+
+        // 2. 특정 공고 삭제 함수
+        function deleteFavorite(id) {
+            if(confirm("이 공고를 관심 목록에서 삭제할까요?")) {
+                let favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
+                favorites = favorites.filter(item => item.id !== id);
+                localStorage.setItem('myFavorites', JSON.stringify(favorites));
+                renderFavorites(); // 화면 새로고침
+            }
+        }
+
+        // 페이지 로드 시 실행
+        window.onload = renderFavorites;
+    </script>
+</body>
+</html>
