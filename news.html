@@ -56,6 +56,15 @@
             display: none; align-items: center; justify-content: center;
             z-index: 1000; flex-direction: column;
         }
+        /* 스피너 간단 추가 */
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -88,27 +97,39 @@
     </div>
 
     <script>
-        // 뉴스 클릭 시 오버레이 표시 후 이동
         function openNews(url) {
             const overlay = document.getElementById('newsOverlay');
             overlay.style.display = 'flex';
             setTimeout(() => { window.location.href = url; }, 800);
         }
 
-        // 실시간 뉴스 가져오기 (Google RSS 사용)
         async function fetchNews() {
             const newsContainer = document.getElementById('news-list');
             try {
-                // '소상공인 정책' 키워드로 뉴스 검색
-                const query = encodeURIComponent('소상공인 지원정책', '소상공인 정책', '소상공인 지원');
+                // 1. 검색 쿼리 수정 (여러 인자가 아닌 하나의 문자열로 결합)
+                const queryText = '소상공인 지원정책 OR 소상공인 지원금';
+                const query = encodeURIComponent(queryText);
                 const rssUrl = encodeURIComponent(`https://news.google.com/rss/search?q=${query}&hl=ko&gl=KR&ceid=KR:ko`);
-                const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`);
+                
+                // 2. API 호출 시 &count=20 추가 (rss2json의 파라미터)
+                const response = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}&count=20`);
                 const data = await response.json();
                 
                 if (data.items && data.items.length > 0) {
+                    // 3. 날짜 내림차순(최신순) 정렬 로직 추가
+                    const sortedItems = data.items.sort((a, b) => {
+                        return new Date(b.pubDate) - new Date(a.pubDate);
+                    });
+
                     newsContainer.innerHTML = ''; // 스켈레톤 제거
-                    data.items.slice(0, 20).forEach(item => {
-                        const date = new Date(item.pubDate).toLocaleDateString();
+                    
+                    // 4. 정렬된 리스트에서 최대 20개 출력
+                    sortedItems.slice(0, 20).forEach(item => {
+                        const date = new Date(item.pubDate).toLocaleDateString('ko-KR', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                        });
                         const itemLink = item.link;
                         const itemEl = document.createElement('div');
                         itemEl.className = 'news-item';
@@ -123,11 +144,11 @@
                     throw new Error('No items');
                 }
             } catch (e) {
+                console.error(e);
                 newsContainer.innerHTML = '<p style="padding:40px; text-align:center; color:#94a3b8;">뉴스를 불러오지 못했습니다.<br>잠시 후 다시 시도해주세요.</p>';
             }
         }
 
-        // 페이지 로드 시 실행
         window.onload = fetchNews;
     </script>
 </body>
