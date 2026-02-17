@@ -131,5 +131,43 @@ function setupEventListeners() {
         };
     });
 }
+// 관심 공고 저장/해제 함수
+function toggleFavorite(policy) {
+    let favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
+    const isExist = favorites.find(fav => fav.id === policy.id);
+
+    if (isExist) {
+        // 이미 있으면 제거
+        favorites = favorites.filter(fav => fav.id !== policy.id);
+        alert("관심 공고에서 제거되었습니다.");
+    } else {
+        // 없으면 추가 (필요한 정보만 추출해서 저장)
+        favorites.push({
+            id: policy.id,
+            title: policy.title,
+            target: policy.target,
+            deadline: policy.deadline,
+            link: policy.link,
+            savedAt: new Date().toLocaleDateString()
+        });
+        alert("관심 공고에 저장되었습니다!");
+    }
+    
+    localStorage.setItem('myFavorites', JSON.stringify(favorites));
+}
+
+// 상세페이지 '저장' 버튼 클릭 이벤트 (detailView가 보일 때 설정)
+document.getElementById('detailFavBtn').onclick = function() {
+    // 현재 열려있는 상세정보 데이터를 객체로 만듦
+    const currentPolicy = {
+        id: document.getElementById('detailTitle').innerText, // 제목을 ID 대용으로 사용하거나 데이터의 실제 ID 사용
+        title: document.getElementById('detailTitle').innerText,
+        target: document.getElementById('detailTarget').innerText,
+        deadline: document.getElementById('detailDeadline').innerText,
+        link: document.getElementById('detailLink').href
+    };
+    toggleFavorite(currentPolicy);
+};
 
 init();
+
