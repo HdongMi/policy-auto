@@ -107,7 +107,7 @@
                 
                 if (data.items && data.items.length > 0) {
                     newsContainer.innerHTML = ''; // 스켈레톤 제거
-                    data.items.slice(0, 8).forEach(item => {
+                    data.items.slice(0, 20).forEach(item => {
                         const date = new Date(item.pubDate).toLocaleDateString();
                         const itemLink = item.link;
                         const itemEl = document.createElement('div');
