@@ -4,7 +4,6 @@ let searchQuery = "";
 
 function init() {
     setupEventListeners();
-    // 세션 기록이 있으면 스플래시 즉시 숨김
     if (sessionStorage.getItem('visited') === 'true') {
         const lp = document.getElementById('landingPage');
         if (lp) lp.style.display = 'none';
@@ -45,9 +44,9 @@ function openDetail(p) {
 
 function showDetailUI(p) {
     document.getElementById("detailTitle").innerText = p.title;
-    document.getElementById("detailTarget").innerText = p.region;
+    document.getElementById("detailTarget").innerText = p.region || p.target || "전국";
     document.getElementById("detailDeadline").innerText = p.deadline;
-    document.getElementById("detailSource").innerText = p.source;
+    document.getElementById("detailSource").innerText = p.source || "상세페이지 참조";
     
     const linkEl = document.getElementById("detailLink");
     linkEl.href = p.link;
@@ -89,6 +88,7 @@ function render() {
         const card = document.createElement("div");
         card.className = "card";
         card.innerHTML = `<h3>${p.title}</h3><p>${p.region} | ${p.deadline}</p>`;
+        // 모바일 터치 대응을 위해 onclick 유지
         card.onclick = () => openDetail(p);
         listEl.appendChild(card);
     });
@@ -101,25 +101,68 @@ function parseDate(str) {
     return c.length >= 8 ? new Date(`${c.substr(0,4)}-${c.substr(4,2)}-${c.substr(6,2)}`) : null;
 }
 
-function setupEventListeners() {
-    // [수정됨] 시작 버튼 클릭 시 페이드 아웃 로직 적용
-    document.getElementById('startBtn').onclick = () => {
-        const landing = document.getElementById('landingPage');
-        sessionStorage.setItem('visited', 'true');
-        
-        // 페이드 아웃 애니메이션 시작
-        landing.classList.add('fade-out');
-        
-        // 애니메이션(0.5초) 후 레이아웃 전환
-        setTimeout(() => {
-            showMainLayout();
-        }, 500);
-    };
+// [추가] 모바일용 토스트 알림 함수
+function showToast(message) {
+    let toast = document.getElementById('toast-msg');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast-msg';
+        toast.style.cssText = `
+            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); color: white; padding: 12px 25px;
+            border-radius: 30px; font-size: 14px; z-index: 9999;
+            transition: opacity 0.3s; opacity: 0; pointer-events: none;
+        `;
+        document.body.appendChild(toast);
+    }
+    toast.innerText = message;
+    toast.style.opacity = '1';
+    setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+}
 
-    document.getElementById('searchInput').oninput = (e) => {
-        searchQuery = e.target.value;
-        render();
-    };
+// 관심 공고 저장/해제 함수
+function toggleFavorite(policy) {
+    let favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
+    // ID가 없을 경우 제목을 키로 사용
+    const policyId = policy.id || policy.title;
+    const isExist = favorites.find(fav => (fav.id === policyId) || (fav.title === policy.title));
+
+    if (isExist) {
+        favorites = favorites.filter(fav => (fav.id !== policyId) && (fav.title !== policy.title));
+        showToast("관심 공고에서 삭제되었습니다.");
+    } else {
+        favorites.push({
+            id: policyId,
+            title: policy.title,
+            target: policy.target,
+            deadline: policy.deadline,
+            link: policy.link,
+            savedAt: new Date().toLocaleDateString()
+        });
+        showToast("관심 공고에 저장되었습니다! ⭐");
+    }
+    localStorage.setItem('myFavorites', JSON.stringify(favorites));
+}
+
+function setupEventListeners() {
+    const startBtn = document.getElementById('startBtn');
+    if(startBtn) {
+        startBtn.onclick = () => {
+            const landing = document.getElementById('landingPage');
+            sessionStorage.setItem('visited', 'true');
+            landing.classList.add('fade-out');
+            setTimeout(() => { showMainLayout(); }, 500);
+        };
+    }
+
+    const searchInput = document.getElementById('searchInput');
+    if(searchInput) {
+        searchInput.oninput = (e) => {
+            searchQuery = e.target.value;
+            render();
+        };
+    }
+
     document.querySelectorAll('.toggle-btn').forEach(btn => {
         btn.onclick = () => {
             document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove("active"));
@@ -130,44 +173,20 @@ function setupEventListeners() {
             render();
         };
     });
-}
-// 관심 공고 저장/해제 함수
-function toggleFavorite(policy) {
-    let favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
-    const isExist = favorites.find(fav => fav.id === policy.id);
 
-    if (isExist) {
-        // 이미 있으면 제거
-        favorites = favorites.filter(fav => fav.id !== policy.id);
-        alert("관심 공고에서 제거되었습니다.");
-    } else {
-        // 없으면 추가 (필요한 정보만 추출해서 저장)
-        favorites.push({
-            id: policy.id,
-            title: policy.title,
-            target: policy.target,
-            deadline: policy.deadline,
-            link: policy.link,
-            savedAt: new Date().toLocaleDateString()
-        });
-        alert("관심 공고에 저장되었습니다!");
+    // 상세페이지 저장 버튼 리스너 등록
+    const favBtn = document.getElementById('detailFavBtn');
+    if(favBtn) {
+        favBtn.onclick = function() {
+            const currentPolicy = {
+                title: document.getElementById('detailTitle').innerText,
+                target: document.getElementById('detailTarget').innerText,
+                deadline: document.getElementById('detailDeadline').innerText,
+                link: document.getElementById('detailLink').href
+            };
+            toggleFavorite(currentPolicy);
+        };
     }
-    
-    localStorage.setItem('myFavorites', JSON.stringify(favorites));
 }
-
-// 상세페이지 '저장' 버튼 클릭 이벤트 (detailView가 보일 때 설정)
-document.getElementById('detailFavBtn').onclick = function() {
-    // 현재 열려있는 상세정보 데이터를 객체로 만듦
-    const currentPolicy = {
-        id: document.getElementById('detailTitle').innerText, // 제목을 ID 대용으로 사용하거나 데이터의 실제 ID 사용
-        title: document.getElementById('detailTitle').innerText,
-        target: document.getElementById('detailTarget').innerText,
-        deadline: document.getElementById('detailDeadline').innerText,
-        link: document.getElementById('detailLink').href
-    };
-    toggleFavorite(currentPolicy);
-};
 
 init();
-
