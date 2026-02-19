@@ -6,7 +6,7 @@
   <title>소상공인 정책 알리미</title>
   <link rel="stylesheet" href="style.css" />
   <style>
-    /* 찜 버튼을 위한 추가 스타일 (기존 style.css에 없다면 참고) */
+    /* 찜 버튼을 위한 추가 스타일 */
     .fav-star {
       cursor: pointer;
       font-size: 20px;
@@ -17,6 +17,8 @@
     .fav-star.active {
       color: #f59e0b; /* 황금색 */
     }
+    /* 화면 전환용 hidden 클래스 */
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -61,22 +63,22 @@
       <div class="detail-section"><strong>🏢 공고처</strong><p id="detailSource">-</p></div>
       <div id="detailAction" style="display: flex; gap: 10px;">
         <a id="detailLink" href="#" target="_blank" class="apply-btn" style="flex: 2;">공고 원문 확인하기</a>
-<button id="detailFavBtn" class="apply-btn" 
-    style="flex: 2 !important; 
-           background: #f8fafc !important; 
-           color: #1e293b !important; 
-           border: 1px solid #e2e8f0 !important; 
-           display: inline-flex !important; 
-           align-items: center !important; 
-           justify-content: center !important; 
-           white-space: nowrap !important; 
-           font-size: 16px !important; 
-           font-weight: bold !important; 
-           text-indent: 0 !important;
-           visibility: visible !important;
-           opacity: 1 !important;">
-    ⭐ 저장
-</button>
+        <button id="detailFavBtn" class="apply-btn" 
+            style="flex: 2 !important; 
+                   background: #f8fafc !important; 
+                   color: #1e293b !important; 
+                   border: 1px solid #e2e8f0 !important; 
+                   display: inline-flex !important; 
+                   align-items: center !important; 
+                   justify-content: center !important; 
+                   white-space: nowrap !important; 
+                   font-size: 16px !important; 
+                   font-weight: bold !important; 
+                   text-indent: 0 !important;
+                   visibility: visible !important;
+                   opacity: 1 !important;">
+            ⭐ 저장
+        </button>
       </div>
     </div>
     <div style="height: 50px;"></div>
@@ -90,12 +92,28 @@
   </div>
 
   <script src="app.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const startBtn = document.getElementById('startBtn');
+        const landingPage = document.getElementById('landingPage');
+        const mainLayout = document.getElementById('mainLayout');
+
+        if (startBtn) {
+            startBtn.addEventListener('click', function() {
+                // 1. 안드로이드 로그캣에 전송 (AdManager가 감지함)
+                console.log("success");
+
+                // 2. 화면 전환 처리
+                if (landingPage && mainLayout) {
+                    landingPage.classList.add('hidden');
+                    mainLayout.classList.remove('hidden');
+                }
+                
+                console.log("화면 전환 및 광고 호출 시도 완료");
+            });
+        }
+    });
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
