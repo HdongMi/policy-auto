@@ -6,75 +6,42 @@
     <title>관심 공고 - 소상공인 정책체크</title>
     <link rel="stylesheet" href="style.css" />
     <style>
-        /* 관심 공고 페이지 전용 추가 스타일 */
+        /* 기존 스타일 유지 */
         .fav-bundle { padding: 15px; }
         .fav-item {
-            background: white;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            border: 1px solid #f1f5f9;
+            background: white; padding: 20px; margin-bottom: 15px;
+            border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex; flex-direction: column; position: relative; border: 1px solid #f1f5f9;
         }
         .fav-info { cursor: pointer; }
-        .fav-title {
-            font-size: 17px;
-            font-weight: 800;
-            color: #1e293b;
-            line-height: 1.4;
-            margin-bottom: 10px;
-            padding-right: 30px; /* 삭제 버튼 공간 */
-        }
-        .fav-details {
-            font-size: 13px;
-            color: #64748b;
-            line-height: 1.6;
-        }
-        .fav-details span {
-            display: block;
-            margin-bottom: 2px;
-        }
+        .fav-title { font-size: 17px; font-weight: 800; color: #1e293b; line-height: 1.4; margin-bottom: 10px; padding-right: 30px; }
+        .fav-details { font-size: 13px; color: #64748b; line-height: 1.6; }
+        .fav-details span { display: block; margin-bottom: 2px; }
         .remove-icon-btn {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: #f1f5f9;
-            color: #94a3b8;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
+            position: absolute; top: 15px; right: 15px; background: #f1f5f9;
+            color: #94a3b8; border: none; width: 32px; height: 32px;
+            border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
-        .remove-icon-btn:active {
-            background: #fee2e2;
-            color: #ef4444;
+
+        /* [추가] 커스텀 모달 스타일 */
+        #custom-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
         }
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: #94a3b8;
+        .modal-content {
+            background: white; padding: 25px; border-radius: 20px; width: 80%; max-width: 300px; text-align: center;
         }
-        .empty-state .icon {
-            font-size: 50px;
-            margin-bottom: 15px;
-            display: block;
+        .modal-text { margin-bottom: 20px; font-size: 16px; font-weight: 600; color: #334155; line-height: 1.5; }
+        .modal-btns { display: flex; gap: 10px; }
+        .modal-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;
         }
-        .back-link {
-            display: inline-block;
-            margin-top: 15px;
-            color: #3b82f6;
-            font-weight: 600;
-            text-decoration: none;
-            font-size: 14px;
-        }
+        .btn-cancel { background: #f1f5f9; color: #64748b; }
+        .btn-confirm { background: #ef4444; color: white; }
+
+        .empty-state { text-align: center; padding: 80px 20px; color: #94a3b8; }
+        .empty-state .icon { font-size: 50px; margin-bottom: 15px; display: block; }
+        .back-link { display: inline-block; margin-top: 15px; color: #3b82f6; font-weight: 600; text-decoration: none; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -91,16 +58,25 @@
 
     <div class="section-title" style="padding: 20px 15px 5px 15px; font-weight: bold; color: #475569;">내가 저장한 정책</div>
     
-    <div id="fav-list" class="fav-bundle">
+    <div id="fav-list" class="fav-bundle"></div>
+
+    <div id="custom-modal">
+        <div class="modal-content">
+            <div class="modal-text" id="modal-message">이 공고를 삭제할까요?</div>
+            <div class="modal-btns">
+                <button class="modal-btn btn-cancel" onclick="closeModal()">취소</button>
+                <button class="modal-btn btn-confirm" id="confirm-delete-btn">삭제</button>
+            </div>
         </div>
+    </div>
 
     <script>
-        // 1. 관심 목록을 화면에 그리는 함수
+        let deleteTargetId = null;
+
         function renderFavorites() {
             const favContainer = document.getElementById('fav-list');
             const favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
 
-            // 데이터가 없을 경우
             if (favorites.length === 0) {
                 favContainer.innerHTML = `
                     <div class="empty-state">
@@ -112,13 +88,12 @@
                 return;
             }
 
-            // 데이터가 있을 경우 리스트 생성
             favContainer.innerHTML = '';
             favorites.forEach(item => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'fav-item';
                 itemEl.innerHTML = `
-                    <button class="remove-icon-btn" onclick="deleteFavorite('${item.id}')">×</button>
+                    <button class="remove-icon-btn" onclick="openDeleteModal('${item.id}')">×</button>
                     <div class="fav-info" onclick="window.open('${item.link}', '_blank')">
                         <div class="fav-title">${item.title}</div>
                         <div class="fav-details">
@@ -132,17 +107,29 @@
             });
         }
 
-        // 2. 특정 공고 삭제 함수
-        function deleteFavorite(id) {
-            if(confirm("이 공고를 관심 목록에서 삭제할까요?")) {
-                let favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
-                favorites = favorites.filter(item => item.id !== id);
-                localStorage.setItem('myFavorites', JSON.stringify(favorites));
-                renderFavorites(); // 화면 새로고침
-            }
+        // [변경] 모달 열기
+        function openDeleteModal(id) {
+            deleteTargetId = id;
+            document.getElementById('custom-modal').style.display = 'flex';
         }
 
-        // 페이지 로드 시 실행
+        // [변경] 모달 닫기
+        function closeModal() {
+            document.getElementById('custom-modal').style.display = 'none';
+            deleteTargetId = null;
+        }
+
+        // [변경] 실제 삭제 실행
+        document.getElementById('confirm-delete-btn').onclick = function() {
+            if (deleteTargetId) {
+                let favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
+                favorites = favorites.filter(item => item.id !== deleteTargetId);
+                localStorage.setItem('myFavorites', JSON.stringify(favorites));
+                renderFavorites();
+                closeModal();
+            }
+        };
+
         window.onload = renderFavorites;
     </script>
 </body>
