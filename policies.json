@@ -1,29 +1,36 @@
 [
   {
+    "title": "2026년도 테크노파크 생산장비 고도화 제2차 지원계획 공고",
+    "region": "전국",
+    "deadline": "2026-04-10~2026-05-11",
+    "source": "중소벤처기업부",
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067179"
+  },
+  {
     "title": "2026년 글로벌베이스캠프 사업 수행기관 모집 공고",
     "region": "전국",
-    "deadline": "상세참조",
+    "deadline": "2026-04-09~2026-04-23",
     "source": "중소벤처기업부",
     "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067114"
   },
   {
     "title": "제3기 벤처기업확인기관 모집 연장 공고",
     "region": "전국",
-    "deadline": "상세참조",
+    "deadline": "2026-04-08~2026-04-14",
     "source": "중소벤처기업부",
     "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067079"
   },
   {
     "title": "2026년도 제조데이터 표준화 사업 참조모델 개발기관 모집 공고",
     "region": "전국",
-    "deadline": "상세참조",
+    "deadline": "2026-04-06~2026-04-24",
     "source": "중소벤처기업부",
     "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067009"
   },
   {
     "title": "2026년 스타트업 AI 기술인력 양성(이어드림스쿨) 교육생 모집 공고",
     "region": "전국",
-    "deadline": "상세참조",
+    "deadline": "2026-04-06~2026-05-10",
     "source": "중소벤처기업부",
     "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067007"
   },
@@ -37,7 +44,7 @@
   {
     "title": "2027년도 시군구연고산업육성 협업프로젝트 예비선정 공고",
     "region": "전국",
-    "deadline": "상세참조",
+    "deadline": "2026-04-06~2026-04-30",
     "source": "중소벤처기업부",
     "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1066981"
   },
@@ -345,9 +352,9 @@
   {
     "title": "2026년도 스케일업금융 발행계획 공고",
     "region": "전국",
-    "deadline": "2026-03-17~2026-04-03",
+    "deadline": "상세참조",
     "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1066329"
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
   },
   {
     "title": "2026년도 중동 특화 긴급 물류바우처 사업 참여기업 모집공고",
@@ -691,12 +698,5 @@
     "deadline": "2026-04-06~2026-04-27",
     "source": "중소벤처기업부",
     "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067005"
-  },
-  {
-    "title": "2026년 청소년비즈쿨 운영기관 모집 공고",
-    "region": "전국",
-    "deadline": "상세참조",
-    "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
   }
 ]
