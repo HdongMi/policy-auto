@@ -1,136 +1,263 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>관심 공고 - 소상공인 정책체크</title>
-    <link rel="stylesheet" href="style.css" />
-    <style>
-        /* 기존 스타일 유지 */
-        .fav-bundle { padding: 15px; }
-        .fav-item {
-            background: white; padding: 20px; margin-bottom: 15px;
-            border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            display: flex; flex-direction: column; position: relative; border: 1px solid #f1f5f9;
-        }
-        .fav-info { cursor: pointer; }
-        .fav-title { font-size: 17px; font-weight: 800; color: #1e293b; line-height: 1.4; margin-bottom: 10px; padding-right: 30px; }
-        .fav-details { font-size: 13px; color: #64748b; line-height: 1.6; }
-        .fav-details span { display: block; margin-bottom: 2px; }
-        .remove-icon-btn {
-            position: absolute; top: 15px; right: 15px; background: #f1f5f9;
-            color: #94a3b8; border: none; width: 32px; height: 32px;
-            border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>관심 공고 - 소상공인 정책체크</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .fav-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 16px 16px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .fav-item {
+      background: var(--white);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      animation: fadeUp 0.3s ease both;
+    }
+    .fav-body {
+      padding: 20px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .fav-body:hover { background: var(--off-white); }
+    .fav-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.4;
+      margin-bottom: 12px;
+      letter-spacing: -0.4px;
+      padding-right: 8px;
+    }
+    .fav-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .fav-meta span {
+      font-size: 13px;
+      color: var(--text-muted);
+      letter-spacing: -0.2px;
+    }
+    .fav-footer {
+      border-top: 1px solid var(--border-light);
+      display: flex;
+    }
+    .fav-link-btn {
+      flex: 1;
+      padding: 13px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-main);
+      text-align: center;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .fav-link-btn:hover { background: var(--off-white); color: var(--text-primary); }
+    .fav-del-btn {
+      flex: 1;
+      padding: 13px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--red);
+      background: none;
+      border: none;
+      border-left: 1px solid var(--border-light);
+      cursor: pointer;
+      font-family: var(--font-main);
+      transition: background 0.15s;
+    }
+    .fav-del-btn:hover { background: var(--red-bg); }
 
-        /* [추가] 커스텀 모달 스타일 */
-        #custom-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;
-        }
-        .modal-content {
-            background: white; padding: 25px; border-radius: 20px; width: 80%; max-width: 300px; text-align: center;
-        }
-        .modal-text { margin-bottom: 20px; font-size: 16px; font-weight: 600; color: #334155; line-height: 1.5; }
-        .modal-btns { display: flex; gap: 10px; }
-        .modal-btn {
-            flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer;
-        }
-        .btn-cancel { background: #f1f5f9; color: #64748b; }
-        .btn-confirm { background: #ef4444; color: white; }
+    /* 빈 상태 */
+    .empty-state {
+      text-align: center;
+      padding: 70px 20px;
+      color: var(--text-muted);
+    }
+    .empty-state .empty-icon { font-size: 38px; margin-bottom: 14px; opacity: 0.5; display: block; }
+    .empty-state p { font-size: 14px; font-weight: 500; line-height: 1.7; margin-bottom: 20px; }
+    .empty-state a {
+      display: inline-block;
+      padding: 12px 24px;
+      background: var(--text-primary);
+      color: var(--white);
+      text-decoration: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
 
-        .empty-state { text-align: center; padding: 80px 20px; color: #94a3b8; }
-        .empty-state .icon { font-size: 50px; margin-bottom: 15px; display: block; }
-        .back-link { display: inline-block; margin-top: 15px; color: #3b82f6; font-weight: 600; text-decoration: none; font-size: 14px; }
-    </style>
+    /* 모달 */
+    #custom-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(4px);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 28px 24px 20px;
+      width: 80%;
+      max-width: 300px;
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+    .modal-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.5;
+      margin-bottom: 20px;
+      letter-spacing: -0.3px;
+    }
+    .modal-sub {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      margin-top: -12px;
+    }
+    .modal-btns { display: flex; gap: 8px; }
+    .modal-btn {
+      flex: 1;
+      padding: 13px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 14px;
+      font-family: var(--font-main);
+      cursor: pointer;
+      letter-spacing: -0.2px;
+      transition: opacity 0.15s;
+    }
+    .modal-btn:hover { opacity: 0.85; }
+    .btn-cancel { background: var(--off-white); color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-confirm { background: var(--red); color: white; }
+  </style>
 </head>
 <body>
 
+  <div id="mainLayout">
     <header class="header">
-        <h1>소상공인 정책체크</h1>
+      <div class="header-top">
+        <div class="header-brand">
+          <span class="brand-icon">🏢</span>
+          <span class="brand-name">정책체크</span>
+        </div>
         <nav class="nav-tabs">
-            <a href="info.html" class="tab-btn">💡 지원자격 안내</a>
-            <a href="index.html" class="tab-btn">📋 공고 목록</a>
-            <a href="news.html" class="tab-btn">📰 실시간 뉴스 보기</a>
-            <a href="favorites.html" class="tab-btn active">⭐ 관심 공고</a>
+          <a href="info.html" class="tab-btn">자격안내</a>
+          <a href="index.html" class="tab-btn">공고목록</a>
+          <a href="news.html" class="tab-btn">뉴스</a>
+          <a href="favorites.html" class="tab-btn active">관심공고</a>
         </nav>
+      </div>
+      <div class="header-body">
+        <h1 class="main-title">관심<br><em>공고</em></h1>
+        <p class="main-sub">저장해둔 정책 공고를 한눈에 확인하세요</p>
+      </div>
     </header>
 
-    <div class="section-title" style="padding: 20px 15px 5px 15px; font-weight: bold; color: #475569;">내가 저장한 정책</div>
-    
-    <div id="fav-list" class="fav-bundle"></div>
+    <div id="fav-list" class="fav-wrap"></div>
+  </div>
 
-    <div id="custom-modal">
-        <div class="modal-content">
-            <div class="modal-text" id="modal-message">이 공고를 삭제할까요?</div>
-            <div class="modal-btns">
-                <button class="modal-btn btn-cancel" onclick="closeModal()">취소</button>
-                <button class="modal-btn btn-confirm" id="confirm-delete-btn">삭제</button>
-            </div>
-        </div>
+  <!-- 삭제 확인 모달 -->
+  <div id="custom-modal">
+    <div class="modal-content">
+      <div class="modal-text">이 공고를 삭제할까요?</div>
+      <p class="modal-sub">삭제 후에는 되돌릴 수 없어요</p>
+      <div class="modal-btns">
+        <button class="modal-btn btn-cancel" onclick="closeModal()">취소</button>
+        <button class="modal-btn btn-confirm" id="confirm-delete-btn">삭제</button>
+      </div>
     </div>
+  </div>
 
-    <script>
-        let deleteTargetId = null;
+  <script>
+    let deleteTargetId = null;
 
-        function renderFavorites() {
-            const favContainer = document.getElementById('fav-list');
-            const favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
+    function renderFavorites() {
+      const favContainer = document.getElementById('fav-list');
+      const favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
 
-            if (favorites.length === 0) {
-                favContainer.innerHTML = `
-                    <div class="empty-state">
-                        <span class="icon">⭐</span>
-                        <p>아직 저장된 공고가 없습니다.<br>나에게 필요한 정책을 담아보세요!</p>
-                        <a href="index.html" class="back-link">공고 보러가기 →</a>
-                    </div>
-                `;
-                return;
-            }
+      if (favorites.length === 0) {
+        favContainer.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-icon">⭐</span>
+            <p>아직 저장된 공고가 없어요.<br>나에게 필요한 정책을 담아보세요!</p>
+            <a href="index.html">공고 보러가기</a>
+          </div>
+        `;
+        return;
+      }
 
-            favContainer.innerHTML = '';
-            favorites.forEach(item => {
-                const itemEl = document.createElement('div');
-                itemEl.className = 'fav-item';
-                itemEl.innerHTML = `
-                    <button class="remove-icon-btn" onclick="openDeleteModal('${item.id}')">×</button>
-                    <div class="fav-info" onclick="window.open('${item.link}', '_blank')">
-                        <div class="fav-title">${item.title}</div>
-                        <div class="fav-details">
-                            <span>📍 지역: ${item.target}</span>
-                            <span>📅 마감: ${item.deadline}</span>
-                            <span style="margin-top:8px; color:#3b82f6; font-size:12px;">클릭하여 원문 보기</span>
-                        </div>
-                    </div>
-                `;
-                favContainer.appendChild(itemEl);
-            });
-        }
+      favContainer.innerHTML = '';
+      favorites.forEach((item, i) => {
+        const el = document.createElement('div');
+        el.className = 'fav-item';
+        el.style.animationDelay = `${i * 0.05}s`;
+        el.innerHTML = `
+          <div class="fav-body" onclick="window.open('${item.link}', '_blank')">
+            <div class="fav-title">${item.title}</div>
+            <div class="fav-meta">
+              <span>📍 ${item.target}</span>
+              <span>📅 마감 ${item.deadline}</span>
+            </div>
+          </div>
+          <div class="fav-footer">
+            <a href="${item.link}" target="_blank" class="fav-link-btn">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              원문 보기
+            </a>
+            <button class="fav-del-btn" onclick="openDeleteModal('${item.id}')">삭제</button>
+          </div>
+        `;
+        favContainer.appendChild(el);
+      });
+    }
 
-        // [변경] 모달 열기
-        function openDeleteModal(id) {
-            deleteTargetId = id;
-            document.getElementById('custom-modal').style.display = 'flex';
-        }
+    function openDeleteModal(id) {
+      deleteTargetId = id;
+      document.getElementById('custom-modal').style.display = 'flex';
+    }
 
-        // [변경] 모달 닫기
-        function closeModal() {
-            document.getElementById('custom-modal').style.display = 'none';
-            deleteTargetId = null;
-        }
+    function closeModal() {
+      document.getElementById('custom-modal').style.display = 'none';
+      deleteTargetId = null;
+    }
 
-        // [변경] 실제 삭제 실행
-        document.getElementById('confirm-delete-btn').onclick = function() {
-            if (deleteTargetId) {
-                let favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
-                favorites = favorites.filter(item => item.id !== deleteTargetId);
-                localStorage.setItem('myFavorites', JSON.stringify(favorites));
-                renderFavorites();
-                closeModal();
-            }
-        };
+    document.getElementById('confirm-delete-btn').onclick = function () {
+      if (deleteTargetId) {
+        let favorites = JSON.parse(localStorage.getItem('myFavorites') || '[]');
+        favorites = favorites.filter(item => item.id !== deleteTargetId);
+        localStorage.setItem('myFavorites', JSON.stringify(favorites));
+        renderFavorites();
+        closeModal();
+      }
+    };
 
-        window.onload = renderFavorites;
-    </script>
+    window.onload = renderFavorites;
+  </script>
 </body>
 </html>
