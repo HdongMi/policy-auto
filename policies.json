@@ -1,5 +1,12 @@
 [
   {
+    "title": "2026년도 글로벌협력형 R&D (예비연구형) 사업 재공고",
+    "region": "전국",
+    "deadline": "2026-05-26~2026-06-09",
+    "source": "중소벤처기업부",
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1068445"
+  },
+  {
     "title": "2026년 중소기업 우체국 국제 물류 서비스 이용 지원 사업 참여기업 모집 공고",
     "region": "전국",
     "deadline": "2026-05-20~2026-06-05",
@@ -340,7 +347,7 @@
     "region": "전국",
     "deadline": "상세참조",
     "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067311"
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
   },
   {
     "title": "2026년 수출지원기반활용사업 참여기업 2차 모집공고",
@@ -660,9 +667,9 @@
   {
     "title": "2026년도 글로벌 팁스 창업기업 모집공고",
     "region": "전국",
-    "deadline": "상세참조",
+    "deadline": "2026-05-26~2026-06-09",
     "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1068445"
   },
   {
     "title": "2026년 팁스 창업기업 지원계획 수정 공고",
@@ -684,12 +691,5 @@
     "deadline": "상세참조",
     "source": "중소벤처기업부",
     "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067383"
-  },
-  {
-    "title": "2026년도 중기부-과기정통부-산업부 주요 AX 사업 통합공고",
-    "region": "전국",
-    "deadline": "상세참조",
-    "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
   }
 ]
