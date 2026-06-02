@@ -1,5 +1,26 @@
 [
   {
+    "title": "「민관협력 오픈이노베이션 지원」 2026년 제2차 방산 스타트업 챌린지(모두의 챌린지–방산) 수요기업 협업 과제 모집공고",
+    "region": "전국",
+    "deadline": "2026-06-02~2026-06-22",
+    "source": "중소벤처기업부",
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1068742"
+  },
+  {
+    "title": "2026년도 2차 대중소기업동반진출지원사업 주관기업 모집 공고",
+    "region": "전국",
+    "deadline": "2026-06-01~2026-06-26",
+    "source": "중소벤처기업부",
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1068717"
+  },
+  {
+    "title": "2026년 대한민국 소상공인 대회 유공자 포상 공고(연장)",
+    "region": "전국",
+    "deadline": "2026-06-01~2026-06-12",
+    "source": "중소벤처기업부",
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1068710"
+  },
+  {
     "title": "2026년 K-수출전략품목 육성사업 참여기업 모집 공고",
     "region": "전국",
     "deadline": "2026-05-29~2026-06-25",
@@ -324,23 +345,23 @@
   {
     "title": "2026년 대한민국 소상공인 대회 유공자 포상 공고",
     "region": "전국",
-    "deadline": "2026-04-20~2026-05-29",
+    "deadline": "2026-06-01~2026-06-12",
     "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067461"
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1068710"
   },
   {
     "title": "2026년도 R&D성과확산 스마트공장 구축 지원사업 2차 공고",
     "region": "전국",
-    "deadline": "2026-04-17~2026-06-16",
+    "deadline": "상세참조",
     "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067445"
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
   },
   {
     "title": "2026년 제조창업활성화 제품화 올인원팩 창업기업 모집공고",
     "region": "전국",
-    "deadline": "2026-04-20~2026-05-11",
+    "deadline": "상세참조",
     "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1067431"
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
   },
   {
     "title": "2026년도 자율형공장 구축 지원사업 2차 공고",
@@ -663,33 +684,5 @@
     "deadline": "상세참조",
     "source": "중소벤처기업부",
     "link": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
-  },
-  {
-    "title": "2026년 글로벌협력형 R&D 1차 공고",
-    "region": "전국",
-    "deadline": "상세참조",
-    "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1068619"
-  },
-  {
-    "title": "2026년 소상공인(법인사업자) 비즈플러스카드 지원사업 시행 공고",
-    "region": "전국",
-    "deadline": "2026-05-18~2026-06-08",
-    "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1068077"
-  },
-  {
-    "title": "2026년 소상공인(개인사업자) 비즈플러스카드 지원사업 시행 공고",
-    "region": "전국",
-    "deadline": "2026-05-18~2026-06-08",
-    "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1068077"
-  },
-  {
-    "title": "2026년 중소기업 기술혁신 지원사업(KOSBIR) 통합 안내",
-    "region": "전국",
-    "deadline": "2026-05-20~2026-06-05",
-    "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1068436"
   }
 ]
