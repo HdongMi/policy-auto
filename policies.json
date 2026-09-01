@@ -1,5 +1,19 @@
 [
   {
+    "title": "『중소기업 AX 우수사례 공모전』참가기업 모집 공고",
+    "region": "전국",
+    "deadline": "2026-09-01~2026-09-21",
+    "source": "중소벤처기업부",
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1070845"
+  },
+  {
+    "title": "「지역 중소기업 AI 활용·확산 유공 포상」 후보자 모집 공고",
+    "region": "전국",
+    "deadline": "2026-09-01~2026-09-21",
+    "source": "중소벤처기업부",
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1070844"
+  },
+  {
     "title": "중소제조 특화 Multi AI Agent 개발(R&D) 점프업 Track 시행계획 공고",
     "region": "전국",
     "deadline": "2026-10-01~2026-10-30",
@@ -338,9 +352,9 @@
   {
     "title": "2026년 정부 첫 실증·구매 프로젝트 (스마트시티) 창업기업 모집공고",
     "region": "전국",
-    "deadline": "2026-07-01~2026-07-22",
+    "deadline": "상세참조",
     "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1069495"
+    "link": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
   },
   {
     "title": "2026년도 중소기업 수출 핵심품목 탄소감축 기술개발사업 하반기 시행계획 추가 공고",
@@ -667,26 +681,12 @@
   {
     "title": "2026년 정부 첫 실증·구매 프로젝트 (모두의 챌린지 로봇) 스타트업 모집공고",
     "region": "전국",
-    "deadline": "2026-07-01~2026-07-22",
-    "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1069495"
-  },
-  {
-    "title": "2026년도 중소기업기술혁신개발사업 글로벌협력형 2차 시행계획 공고",
-    "region": "전국",
-    "deadline": "2026-07-27~ 예산 소진 시",
-    "source": "중소벤처기업부",
-    "link": "https://www.mss.go.kr/site/smba/ex/bbs/View.do?cbIdx=310&bcIdx=1070071"
-  },
-  {
-    "title": "2026년도 제2차 중소벤처기업부 혁신제품 지정기간 연장(1차연장) 공고",
-    "region": "전국",
     "deadline": "상세참조",
     "source": "중소벤처기업부",
     "link": "https://www.mss.go.kr/site/smba/ex/bbs/List.do?cbIdx=310"
   },
   {
-    "title": "2026년도 중소기업 수출 핵심품목 탄소감축 기술개발사업 하반기 시행계획 공고",
+    "title": "2026년도 중소기업기술혁신개발사업 글로벌협력형 2차 시행계획 공고",
     "region": "전국",
     "deadline": "2026-07-27~ 예산 소진 시",
     "source": "중소벤처기업부",
